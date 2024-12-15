@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 
@@ -24,12 +25,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
             MasterMemeTheme {
-                Box(modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center){
-                    Text("Todo: App Goes here")
-
-                }
+                MasterMemeNavigationGraph(navController = navController)
             }
         }
     }
