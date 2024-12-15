@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <style name="Theme.MasterMeme" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background color -->
+        <item name="windowSplashScreenBackground">@color/white</item>
+
+        <!-- Use our custom icon as the splash image -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/master_meme_logo</item>
+
+        <!-- Control the duration of the splash screen -->
+        <item name="windowSplashScreenAnimationDuration">300</item>
+
+        <!-- Set the theme of the Activity that follows your splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.MasterMeme</item>
+    </style>
 </resources>
