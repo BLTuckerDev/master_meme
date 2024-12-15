@@ -88,11 +88,12 @@ fun HomeTopBar(modifier: Modifier = Modifier,
                 title = { Text("Your memes") },
                 actions = {
                     TextButton(onClick = { showSortMenu = true }) {
-                        Text(text = if (sortMode == SortMode.FAVORITES) "Favorites first" else "Newest first")
+                        Text(text = if (sortMode == SortMode.FAVORITES) "Favorites first" else "Newest first", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "Sort options",
-                            modifier = Modifier.rotate(dropdownIconRotation)
+                            modifier = Modifier.rotate(dropdownIconRotation),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         DropdownMenu(
@@ -100,14 +101,14 @@ fun HomeTopBar(modifier: Modifier = Modifier,
                             onDismissRequest = { showSortMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Favorites first") },
+                                text = { Text("Favorites first", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = {
                                     onSortModeChange(SortMode.FAVORITES)
                                     showSortMenu = false
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Newest first") },
+                                text = { Text("Newest first",color = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = {
                                     onSortModeChange(SortMode.NEWEST)
                                     showSortMenu = false
