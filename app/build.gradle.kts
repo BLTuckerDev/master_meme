@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "dev.bltucker.mastermeme"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "dev.bltucker.mastermeme"
