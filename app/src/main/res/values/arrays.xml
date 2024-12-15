@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="meme_templates">
+        <item>@drawable/meme_template_14p2is</item>
+        <item>@drawable/meme_template_1_grus_plan</item>
+        <item>@drawable/meme_template_1jgrgn</item>
+        <item>@drawable/meme_template_1op9wy</item>
+        <item>@drawable/meme_template_1otri4</item>
+        <item>@drawable/meme_template_1yz6z4</item>
+        <item>@drawable/meme_template_21ajtl</item>
+        <item>@drawable/meme_template_24zoa8</item>
+        <item>@drawable/meme_template_2bbctk</item>
+        <item>@drawable/meme_template_2byuiy</item>
+        <item>@drawable/meme_template_2eb198</item>
+        <item>@drawable/meme_template_2qx7sw</item>
+        <item>@drawable/meme_template_2reqtg</item>
+        <item>@drawable/meme_template_2t8r9a</item>
+        <item>@drawable/meme_template_2w2e5e</item>
+        <item>@drawable/meme_template_34vt4i</item>
+        <item>@drawable/meme_template_3eqjd8</item>
+        <item>@drawable/meme_template_3f0mvv</item>
+        <item>@drawable/meme_template_3igo27</item>
+        <item>@drawable/meme_template_3x8soh</item>
+        <item>@drawable/meme_template_43iacv</item>
+        <item>@drawable/meme_template_49su9f</item>
+        <item>@drawable/meme_template_58eyvu</item>
+        <item>@drawable/meme_template_59c1hh</item>
+        <item>@drawable/meme_template_64sz4u</item>
+        <item>@drawable/meme_template_6rcrc1</item>
+        <item>@drawable/meme_template_6u6ylb</item>
+        <item>@drawable/meme_template_7wxtd1</item>
+        <item>@drawable/meme_template_8c9dbh</item>
+        <item>@drawable/meme_template_boardroom_meeting_suggestion</item>
+        <item>@drawable/meme_template_change_my_mind_</item>
+        <item>@drawable/meme_template_clown_applying_makeup</item>
+        <item>@drawable/meme_template_disaster_girl</item>
+        <item>@drawable/meme_template_epic_handshake</item>
+        <item>@drawable/meme_template_hide_the_pain_harold</item>
+        <item>@drawable/meme_template_i_bet_hes_thinking_about_other_women</item>
+        <item>@drawable/meme_template_is_this_a_pigeon</item>
+        <item>@drawable/meme_template_i_was_told_there_would_be</item>
+        <item>@drawable/meme_template_jack_sparrow_being_chased</item>
+        <item>@drawable/meme_template_left_exit_12_off_ramp</item>
+        <item>@drawable/meme_template_leonardo_dicaprio_cheers</item>
+        <item>@drawable/meme_template_running_away_balloon</item>
+        <item>@drawable/meme_template_sad_pablo_escobar</item>
+        <item>@drawable/meme_template_scared_cat</item>
+        <item>@drawable/meme_template_the_rock_driving</item>
+        <item>@drawable/meme_template_third_world_skeptical_kid</item>
+        <item>@drawable/meme_template_two_buttons</item>
+        <item>@drawable/meme_template_waiting_skeleton</item>
+    </array>
+</resources>
