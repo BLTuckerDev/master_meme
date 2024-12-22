@@ -10,13 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -24,13 +29,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import dev.bltucker.mastermeme.R
+import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 import dev.bltucker.mastermeme.home.composables.HomeTopBar
 import dev.bltucker.mastermeme.home.composables.SortMode
+import dev.bltucker.mastermeme.home.composables.TemplateBottomSheet
 
 const val HOME_SCREEN_ROUTE = "home"
 
@@ -40,20 +48,39 @@ fun NavGraphBuilder.homeScreen(){
         val viewModel = hiltViewModel<HomeViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
 
+
+        LifecycleStartEffect(Unit) {
+            viewModel.onStart()
+
+            onStopOrDispose {  }
+        }
+
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
-            onCreateMemeClick = {},
-            onSortModeChange = viewModel::onUpdateSortMode
+            onCreateMemeClick = viewModel::onShowTemplateSheet,
+            onSortModeChange = viewModel::onUpdateSortMode,
+            onTemplateSelected = {},
+            onTemplateSearchQueryChange = {},
+            onDismissTemplateSheet = viewModel::onDismissTemplateSheet,
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(modifier : Modifier = Modifier,
                        model: HomeModel,
                        onCreateMemeClick: () -> Unit = {},
-                       onSortModeChange: (SortMode) -> Unit = {},){
+                       onSortModeChange: (SortMode) -> Unit = {},
+                       onTemplateSelected: (MemeTemplate) -> Unit = {},
+                       onTemplateSearchQueryChange: (String) -> Unit = {},
+                       onDismissTemplateSheet: () -> Unit = {}
+                       ){
+
+    val scope = rememberCoroutineScope()
+
+
     Scaffold(
         topBar = {
             HomeTopBar(
@@ -96,6 +123,27 @@ private fun HomeScreen(modifier : Modifier = Modifier,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp)
             )
+        }
+
+        if (model.showTemplateSheet) {
+            val modalBottomSheetState = rememberModalBottomSheetState()
+
+            ModalBottomSheet(
+                onDismissRequest = onDismissTemplateSheet,
+                sheetState = modalBottomSheetState,
+                dragHandle = { BottomSheetDefaults.DragHandle() }
+            ) {
+                TemplateBottomSheet(
+                    templates = model.memeTemplates,
+                    searchQuery = model.memeTemplateSearchQuery,
+                    onSearchQueryChange = onTemplateSearchQueryChange,
+                    onTemplateSelected = onTemplateSelected,
+                    onDismiss = onDismissTemplateSheet,
+                    onOpenSearch = {  },
+                    onCloseSearch = {  },
+                    isSearching = false
+                )
+            }
         }
     }
 }
