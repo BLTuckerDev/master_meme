@@ -13,4 +13,5 @@ data class HomeModel(
     val showTemplateSheet: Boolean = false,
     val showMemeTemplateSearch: Boolean = false,
     val memeTemplates: List<MemeTemplate> = emptyList(),
+    val selectedMemeTemplate: MemeTemplate? = null
 )

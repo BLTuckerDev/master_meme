@@ -58,11 +58,14 @@ fun NavGraphBuilder.homeScreen(){
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
-            onCreateMemeClick = viewModel::onShowTemplateSheet,
+            onCreateMemeClick = { viewModel.onSetBottomSheetVisibility(true) },
             onSortModeChange = viewModel::onUpdateSortMode,
-            onTemplateSelected = {},
-            onTemplateSearchQueryChange = {},
-            onDismissTemplateSheet = viewModel::onDismissTemplateSheet,
+            onTemplateSelected = viewModel::onTemplateSelected,
+            onTemplateSearchQueryChange = viewModel::onUpdateTemplateSearchQuery,
+            onDismissTemplateSheet = { viewModel.onSetBottomSheetVisibility(false) },
+            onOpenTemplateSearch = { viewModel.onSetTemplateSearchVisibility(true) },
+            onCloseTemplateSearch = { viewModel.onSetTemplateSearchVisibility(false) },
+            onExecuteTemplateSearch = { viewModel.onExecuteTemplateSearch() }
         )
     }
 }
@@ -75,11 +78,11 @@ private fun HomeScreen(modifier : Modifier = Modifier,
                        onSortModeChange: (SortMode) -> Unit = {},
                        onTemplateSelected: (MemeTemplate) -> Unit = {},
                        onTemplateSearchQueryChange: (String) -> Unit = {},
-                       onDismissTemplateSheet: () -> Unit = {}
+                       onDismissTemplateSheet: () -> Unit = {},
+                       onOpenTemplateSearch: () -> Unit = {},
+                       onCloseTemplateSearch: () -> Unit = {},
+                       onExecuteTemplateSearch: () -> Unit,
                        ){
-
-    val scope = rememberCoroutineScope()
-
 
     Scaffold(
         topBar = {
@@ -126,7 +129,7 @@ private fun HomeScreen(modifier : Modifier = Modifier,
         }
 
         if (model.showTemplateSheet) {
-            val modalBottomSheetState = rememberModalBottomSheetState()
+            val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
             ModalBottomSheet(
                 onDismissRequest = onDismissTemplateSheet,
@@ -138,10 +141,10 @@ private fun HomeScreen(modifier : Modifier = Modifier,
                     searchQuery = model.memeTemplateSearchQuery,
                     onSearchQueryChange = onTemplateSearchQueryChange,
                     onTemplateSelected = onTemplateSelected,
-                    onDismiss = onDismissTemplateSheet,
-                    onOpenSearch = {  },
-                    onCloseSearch = {  },
-                    isSearching = false
+                    onOpenSearch = { onOpenTemplateSearch() },
+                    onCloseSearch = { onCloseTemplateSearch() },
+                    isSearching = model.showMemeTemplateSearch,
+                    onExecuteTemplateSearch = onExecuteTemplateSearch
                 )
             }
         }
@@ -160,7 +163,13 @@ private fun HomeScreenEmptyStatePreview() {
             modifier = Modifier.fillMaxSize(),
             model = previewModel,
             onCreateMemeClick = {},
-            onSortModeChange = {}
+            onSortModeChange = {},
+            onTemplateSelected = {},
+            onTemplateSearchQueryChange = {},
+            onDismissTemplateSheet = {},
+            onOpenTemplateSearch = {},
+            onCloseTemplateSearch = {},
+            onExecuteTemplateSearch = {},
         )
     }
 }

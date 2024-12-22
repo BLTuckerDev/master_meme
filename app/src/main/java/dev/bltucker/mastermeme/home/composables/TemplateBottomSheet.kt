@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,10 +40,14 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplateBottomSheet(
+    modifier: Modifier = Modifier,
     templates: List<MemeTemplate>,
     searchQuery: String,
     isSearching: Boolean,
@@ -45,10 +55,12 @@ fun TemplateBottomSheet(
     onTemplateSelected: (MemeTemplate) -> Unit,
     onOpenSearch: () -> Unit,
     onCloseSearch: () -> Unit,
+    onExecuteTemplateSearch: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             .background(MaterialTheme.colorScheme.surface)
     ) {
         SheetTopBar(
@@ -56,7 +68,8 @@ fun TemplateBottomSheet(
             showSearchField = isSearching,
             onSearchQueryChange = onSearchQueryChange,
             onOpenSearch = onOpenSearch,
-            onCloseSearch = onCloseSearch
+            onCloseSearch = onCloseSearch,
+            onExecuteTemplateSearch = onExecuteTemplateSearch,
         )
 
         if(searchQuery.isNotBlank()){
@@ -107,10 +120,21 @@ fun TemplateBottomSheet(
 private fun SheetTopBar(
     searchQuery: String,
     showSearchField: Boolean,
+    onExecuteTemplateSearch: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
     onOpenSearch: () -> Unit,
     onCloseSearch: () -> Unit,
 ) {
+    var searchJob by remember { mutableStateOf<Job?>(null) }
+
+    LaunchedEffect(searchQuery) {
+        searchJob?.cancel()
+        searchJob = launch {
+            delay(350)
+            onExecuteTemplateSearch()
+        }
+    }
+
     TopAppBar(
         title = {
             if (showSearchField) {
@@ -198,7 +222,8 @@ private fun TemplateBottomSheetPreview() {
                 onTemplateSelected = {},
                 onOpenSearch = {},
                 onCloseSearch = {},
-                isSearching = false
+                isSearching = false,
+                onExecuteTemplateSearch = {},
             )
         }
     }
@@ -229,7 +254,8 @@ private fun TemplateBottomSheetPreview_Searching() {
                 onTemplateSelected = {},
                 onOpenSearch = {},
                 onCloseSearch = {},
-                isSearching = true
+                isSearching = true,
+                onExecuteTemplateSearch = {},
             )
         }
     }
@@ -247,7 +273,8 @@ private fun TemplateBottomSheetPreview_Empty() {
                 onTemplateSelected = {},
                 onOpenSearch = {},
                 onCloseSearch = {},
-                isSearching = true
+                isSearching = true,
+                onExecuteTemplateSearch = {},
             )
         }
     }
