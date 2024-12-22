@@ -129,7 +129,7 @@ private fun HomeScreen(modifier : Modifier = Modifier,
         }
 
         if (model.showTemplateSheet) {
-            val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
             ModalBottomSheet(
                 onDismissRequest = onDismissTemplateSheet,
