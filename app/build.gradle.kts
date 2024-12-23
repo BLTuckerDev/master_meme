@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.kotlin.ksp)
+    kotlin("plugin.serialization") version libs.versions.kotlin.get()
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -77,6 +79,9 @@ dependencies {
     implementation(libs.compose.icons.extended)
     implementation(libs.compose.tooling.preview)
     debugImplementation(libs.compose.tooling)
+
+    // Kotlinx
+    implementation(libs.kotlinx.serialization.json)
 
     // Lifecycle
     implementation(libs.lifecycle.runtime.compose)
