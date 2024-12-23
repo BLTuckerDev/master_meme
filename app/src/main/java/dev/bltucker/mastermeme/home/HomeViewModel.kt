@@ -63,7 +63,7 @@ class HomeViewModel @Inject constructor(private val memeTemplatesRepository: Mem
         }
     }
 
-    fun onTemplateSelected(memeTemplate: MemeTemplate){
+    fun onTemplateSelected(memeTemplate: MemeTemplate?){
         mutableModel.update {
             it.copy(selectedMemeTemplate = memeTemplate, showTemplateSheet = false, showMemeTemplateSearch = false, memeTemplateSearchQuery = "")
         }

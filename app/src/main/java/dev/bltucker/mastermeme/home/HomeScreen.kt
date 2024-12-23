@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -43,10 +44,19 @@ import dev.bltucker.mastermeme.home.composables.TemplateBottomSheet
 const val HOME_SCREEN_ROUTE = "home"
 
 
-fun NavGraphBuilder.homeScreen(){
+fun NavGraphBuilder.homeScreen(onNavigateToCreateMeme: (MemeTemplate) -> Unit){
     composable(route = HOME_SCREEN_ROUTE) {
         val viewModel = hiltViewModel<HomeViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
+
+        LaunchedEffect(model.selectedMemeTemplate) {
+            if(model.selectedMemeTemplate != null){
+                model.selectedMemeTemplate?.let{ selectedTemplate ->
+                    onNavigateToCreateMeme(selectedTemplate)
+                    viewModel.onTemplateSelected(null)
+                }
+            }
+        }
 
 
         LifecycleStartEffect(Unit) {

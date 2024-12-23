@@ -7,9 +7,11 @@ import androidx.annotation.DrawableRes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Serializable
 data class MemeTemplate(
     @DrawableRes val resourceId: Int,
     val name: String,
@@ -46,5 +48,9 @@ class MemeTemplatesRepository @Inject constructor(@ApplicationContext private va
                 null
             }
         }
+
+    fun getTemplateById(templateId: Int): MemeTemplate? {
+        return templateList.firstOrNull() { it.resourceId == templateId }
+    }
 }
 
