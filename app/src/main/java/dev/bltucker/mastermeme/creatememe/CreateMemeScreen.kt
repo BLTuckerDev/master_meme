@@ -2,6 +2,7 @@ package dev.bltucker.mastermeme.creatememe
 
 import ExitConfirmationDialog
 import android.graphics.Bitmap
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -31,7 +32,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateMemeTemplateArgs(val templateId: Int)
 
-fun NavGraphBuilder.createMemeScreen(onBackPress: () -> Unit) {
+fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
     composable<CreateMemeTemplateArgs>{ backStackEntry ->
         val args = backStackEntry.toRoute<CreateMemeTemplateArgs>()
         val viewModel = hiltViewModel<CreateMemeViewModel>()
@@ -43,10 +44,15 @@ fun NavGraphBuilder.createMemeScreen(onBackPress: () -> Unit) {
             onStopOrDispose {  }
         }
 
+
+        BackHandler(onBack = {
+            viewModel.onToggleExitDialog()
+        })
+
         CreateMemeScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
-            onBackPress = onBackPress,
+            onBackPress = onNavigateBack,
             onAddTextBox = viewModel::onAddTextBox,
             onTextBoxSelected = viewModel::onTextBoxSelected,
             onTextBoxMoved = viewModel::onTextBoxMoved,

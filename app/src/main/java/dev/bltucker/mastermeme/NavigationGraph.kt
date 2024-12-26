@@ -19,7 +19,7 @@ fun MasterMemeNavigationGraph(navController: NavHostController) {
             navController.navigate(CreateMemeTemplateArgs(memeTemplate.resourceId))
         })
 
-        createMemeScreen(onBackPress = {
+        createMemeScreen(onNavigateBack = {
             navController.popBackStack()
         })
     }
