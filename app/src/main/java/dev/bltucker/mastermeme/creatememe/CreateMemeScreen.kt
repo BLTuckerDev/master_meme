@@ -145,13 +145,14 @@ fun CreateMemeScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .capturable(captureController)
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
             model.memeTemplate?.let { template ->
                 // TODO: Implement meme canvas with template image and draggable text boxes
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier
+                    .capturable(captureController)
+                    .fillMaxSize()) {
                     AsyncImage(
                         modifier = Modifier
                             .fillMaxSize()
@@ -163,7 +164,7 @@ fun CreateMemeScreen(
                             },
                         model = template.resourceId,
                         contentDescription = template.name,
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.FillWidth
                     )
 
                     model.textBoxes.forEach { textBox ->

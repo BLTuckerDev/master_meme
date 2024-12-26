@@ -168,7 +168,7 @@ private fun MemeList(modifier: Modifier = Modifier,
             AsyncImage(
                 model = meme.filepath,
                 contentDescription = meme.templateName,
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
             )
         }
