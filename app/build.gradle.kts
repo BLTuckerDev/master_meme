@@ -67,6 +67,9 @@ kapt {
 
 dependencies {
 
+    // Capturable
+    implementation(libs.capturable)
+
     // Core
     implementation(libs.androidx.core.ktx)
     coreLibraryDesugaring(libs.android.desugar)
