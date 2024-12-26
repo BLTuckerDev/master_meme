@@ -1,6 +1,7 @@
 package dev.bltucker.mastermeme.creatememe
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.TextUnit
 import androidx.lifecycle.ViewModel
@@ -185,7 +186,11 @@ class CreateMemeViewModel @Inject constructor(
     fun onSaveMeme(bitmap: Bitmap) {
         viewModelScope.launch {
             mutableModel.value.memeTemplate?.let { template ->
-                memeRepository.saveMeme(template.name, bitmap)
+                try{
+                    memeRepository.saveMeme(template.name, bitmap)
+                } catch (ex: Exception){
+                    Log.d("SAVE_MEME", "Error Saving Meme: $ex")
+                }
             }
         }
     }

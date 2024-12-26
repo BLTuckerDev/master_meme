@@ -2,6 +2,7 @@ package dev.bltucker.mastermeme.creatememe
 
 import ExitConfirmationDialog
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -14,13 +15,17 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
@@ -38,6 +43,9 @@ import dev.bltucker.mastermeme.creatememe.composables.CreateMemeTopBar
 import dev.bltucker.mastermeme.creatememe.composables.EditMemeTextDialog
 import dev.bltucker.mastermeme.creatememe.composables.MemeTextOverlay
 import dev.bltucker.mastermeme.creatememe.composables.SaveOptionsSheet
+import dev.shreyaspatil.capturable.capturable
+import dev.shreyaspatil.capturable.controller.rememberCaptureController
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
@@ -83,7 +91,9 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
+    ExperimentalComposeApi::class
+)
 @Composable
 fun CreateMemeScreen(
     model: CreateMemeModel,
@@ -107,6 +117,9 @@ fun CreateMemeScreen(
 ) {
 
     var lastClickOffset by remember { mutableStateOf(Offset.Zero) }
+    val captureController = rememberCaptureController()
+    val coroutineScope = rememberCoroutineScope()
+
 
     Scaffold(
         modifier = modifier,
@@ -132,6 +145,7 @@ fun CreateMemeScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
+                .capturable(captureController)
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
@@ -178,7 +192,17 @@ fun CreateMemeScreen(
             ) {
                 SaveOptionsSheet(
                     onDismiss = onToggleSaveOptions,
-                    onSave = { /* TODO: Implement save to device */ },
+                    onSave = {
+                        coroutineScope.launch {
+                            try {
+                                val bitmapAsync = captureController.captureAsync()
+                                val bitmap = bitmapAsync.await()
+                                onSaveMeme(bitmap.asAndroidBitmap())
+                            } catch (error: Exception) {
+                                Log.d("DEBUG", "error saving: $error")
+                            }
+                        }
+                    },
                     onShare = { /* TODO: Implement share */ }
                 )
             }
