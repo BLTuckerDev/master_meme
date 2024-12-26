@@ -1,8 +1,9 @@
 package dev.bltucker.mastermeme.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.bltucker.mastermeme.common.MemeRepository
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.templates.MemeTemplatesRepository
 import dev.bltucker.mastermeme.home.composables.SortMode
@@ -10,10 +11,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val memeTemplatesRepository: MemeTemplatesRepository) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val memeTemplatesRepository: MemeTemplatesRepository,
+    private val memeRepository: MemeRepository
+) : ViewModel() {
 
     private val mutableModel: MutableStateFlow<HomeModel> = MutableStateFlow(HomeModel())
 
@@ -29,6 +34,7 @@ class HomeViewModel @Inject constructor(private val memeTemplatesRepository: Mem
         hasStarted = true
 
         loadTemplates()
+        observeMemes()
     }
 
     private fun loadTemplates(){
@@ -38,6 +44,23 @@ class HomeViewModel @Inject constructor(private val memeTemplatesRepository: Mem
         }
     }
 
+    private fun observeMemes(){
+        viewModelScope.launch{
+            memeRepository.getMemes(true).collect{ memes ->
+                mutableModel.update {
+                    it.copy(favoriteMemes = memes)
+                }
+            }
+        }
+
+        viewModelScope.launch{
+            memeRepository.getMemes(false).collect{ memes ->
+                mutableModel.update {
+                    it.copy(memes = memes)
+                }
+            }
+        }
+    }
 
     fun onUpdateSortMode(sortMode: SortMode){
         mutableModel.update {

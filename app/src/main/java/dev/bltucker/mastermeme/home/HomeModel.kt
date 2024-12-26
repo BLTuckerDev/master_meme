@@ -6,6 +6,7 @@ import dev.bltucker.mastermeme.home.composables.SortMode
 
 data class HomeModel(
     val memes: List<MemeEntity> = emptyList(),
+    val favoriteMemes: List<MemeEntity> = emptyList(),
     val memeSearchQuery: String = "",
     val memeTemplateSearchQuery: String ="",
     val sortMode: SortMode = SortMode.FAVORITES,
@@ -14,4 +15,9 @@ data class HomeModel(
     val showMemeTemplateSearch: Boolean = false,
     val memeTemplates: List<MemeTemplate> = emptyList(),
     val selectedMemeTemplate: MemeTemplate? = null
-)
+){
+    val filteredMemes: List<MemeEntity> = when(sortMode){
+        SortMode.FAVORITES -> favoriteMemes
+        SortMode.NEWEST -> memes
+    }
+}

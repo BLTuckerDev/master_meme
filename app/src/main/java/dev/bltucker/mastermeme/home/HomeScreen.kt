@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.BottomSheetDefaults
@@ -25,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +38,9 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import coil3.compose.AsyncImage
 import dev.bltucker.mastermeme.R
+import dev.bltucker.mastermeme.common.room.MemeEntity
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 import dev.bltucker.mastermeme.home.composables.HomeTopBar
@@ -114,28 +120,16 @@ private fun HomeScreen(modifier : Modifier = Modifier,
         },
         modifier = modifier
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
+
+        if(model.filteredMemes.isEmpty()){
+            NoMemesView(  modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),)
+        } else {
+            MemeList(  modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.no_memes_home_icon),
-                contentDescription = null,
-                modifier = Modifier.size(160.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Tap + button to create your first meme",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp)
-            )
+                memes = model.filteredMemes)
         }
 
         if (model.showTemplateSheet) {
@@ -161,6 +155,51 @@ private fun HomeScreen(modifier : Modifier = Modifier,
     }
 }
 
+@Composable
+private fun MemeList(modifier: Modifier = Modifier,
+                     memes: List<MemeEntity>) {
+    LazyVerticalGrid(
+        modifier = modifier,
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(memes) { meme ->
+            AsyncImage(
+                model = meme.filepath,
+                contentDescription = meme.templateName,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoMemesView(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.no_memes_home_icon),
+            contentDescription = null,
+            modifier = Modifier.size(160.dp)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Tap + button to create your first meme",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp)
+        )
+    }
+
+}
 
 
 @Preview(showSystemUi = true)
