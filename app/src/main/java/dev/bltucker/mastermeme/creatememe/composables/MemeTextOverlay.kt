@@ -124,7 +124,8 @@ private fun MemeTextOverlayPreview_Selected() {
                 color = Color.White,
                 isSelected = true,
                 onDelete = {},
-                onTap = {}
+                onTap = {},
+                offset = Offset(0f, 0f)
             )
         }
     }
@@ -142,7 +143,8 @@ private fun MemeTextOverlayPreview_Unselected() {
                 color = Color.White,
                 isSelected = false,
                 onDelete = {},
-                onTap = {}
+                onTap = {},
+                offset = Offset(0f, 0f)
             )
         }
     }
@@ -160,7 +162,8 @@ private fun MemeTextOverlayPreview_LongText() {
                 color = Color.White,
                 isSelected = true,
                 onDelete = {},
-                onTap = {}
+                onTap = {},
+                offset = Offset(0f, 0f)
             )
         }
     }
