@@ -25,10 +25,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,12 +36,12 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import coil3.compose.AsyncImage
 import dev.bltucker.mastermeme.R
 import dev.bltucker.mastermeme.common.room.MemeEntity
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 import dev.bltucker.mastermeme.home.composables.HomeTopBar
+import dev.bltucker.mastermeme.home.composables.MemeListItem
 import dev.bltucker.mastermeme.home.composables.SortMode
 import dev.bltucker.mastermeme.home.composables.TemplateBottomSheet
 
@@ -81,7 +79,9 @@ fun NavGraphBuilder.homeScreen(onNavigateToCreateMeme: (MemeTemplate) -> Unit){
             onDismissTemplateSheet = { viewModel.onSetBottomSheetVisibility(false) },
             onOpenTemplateSearch = { viewModel.onSetTemplateSearchVisibility(true) },
             onCloseTemplateSearch = { viewModel.onSetTemplateSearchVisibility(false) },
-            onExecuteTemplateSearch = { viewModel.onExecuteTemplateSearch() }
+            onExecuteTemplateSearch = { viewModel.onExecuteTemplateSearch() },
+            onToggleMemeFavorite = viewModel::onToggleMemeFavoriteStatus,
+            onLongClickMeme = viewModel::onLongClickMeme
         )
     }
 }
@@ -91,7 +91,12 @@ fun NavGraphBuilder.homeScreen(onNavigateToCreateMeme: (MemeTemplate) -> Unit){
 private fun HomeScreen(modifier : Modifier = Modifier,
                        model: HomeModel,
                        onCreateMemeClick: () -> Unit = {},
+
+                       onToggleMemeFavorite: (MemeEntity) -> Unit,
+                       onLongClickMeme: (MemeEntity) -> Unit,
+
                        onSortModeChange: (SortMode) -> Unit = {},
+
                        onTemplateSelected: (MemeTemplate) -> Unit = {},
                        onTemplateSearchQueryChange: (String) -> Unit = {},
                        onDismissTemplateSheet: () -> Unit = {},
@@ -104,7 +109,9 @@ private fun HomeScreen(modifier : Modifier = Modifier,
         topBar = {
             HomeTopBar(
                 sortMode = model.sortMode,
-                onSortModeChange = { sortMode -> onSortModeChange(sortMode) }
+                onSortModeChange = { sortMode -> onSortModeChange(sortMode) },
+                isInSelectionMode = model.isInSelectionMode,
+                selectedCount = model.selectedMemes.size,
             )
         },
         floatingActionButton = {
@@ -129,7 +136,10 @@ private fun HomeScreen(modifier : Modifier = Modifier,
             MemeList(  modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-                memes = model.filteredMemes)
+                model = model,
+                onLongClick = onLongClickMeme,
+                onFavoriteClick = onToggleMemeFavorite,
+            )
         }
 
         if (model.showTemplateSheet) {
@@ -157,19 +167,23 @@ private fun HomeScreen(modifier : Modifier = Modifier,
 
 @Composable
 private fun MemeList(modifier: Modifier = Modifier,
-                     memes: List<MemeEntity>) {
+                     model: HomeModel,
+                     onLongClick: (MemeEntity) -> Unit = {},
+                     onFavoriteClick: (MemeEntity) -> Unit = {}) {
     LazyVerticalGrid(
         modifier = modifier,
         columns = GridCells.Fixed(2),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(memes) { meme ->
-            AsyncImage(
-                model = meme.filepath,
-                contentDescription = meme.templateName,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
+        items(model.filteredMemes) { meme ->
+            MemeListItem(
+                modifier = Modifier.fillMaxSize(),
+                meme = meme,
+                isSelectionMode = model.isInSelectionMode,
+                isSelected = false,
+                onLongClick = { onLongClick(meme) },
+                onFavoriteClick = { onFavoriteClick(meme) }
             )
         }
     }
@@ -219,6 +233,8 @@ private fun HomeScreenEmptyStatePreview() {
             onOpenTemplateSearch = {},
             onCloseTemplateSearch = {},
             onExecuteTemplateSearch = {},
+            onToggleMemeFavorite = {},
+            onLongClickMeme = {}
         )
     }
 }

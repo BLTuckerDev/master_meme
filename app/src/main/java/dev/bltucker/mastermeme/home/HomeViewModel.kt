@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bltucker.mastermeme.common.MemeRepository
+import dev.bltucker.mastermeme.common.room.MemeEntity
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.templates.MemeTemplatesRepository
 import dev.bltucker.mastermeme.home.composables.SortMode
@@ -103,7 +104,19 @@ class HomeViewModel @Inject constructor(
                 it.copy(memeTemplates = templates)
             }
         }
-
-
     }
+
+    fun onLongClickMeme(longClickedMeme: MemeEntity){
+        mutableModel.update {
+            it.copy(selectedMemes = it.selectedMemes + longClickedMeme, isInSelectionMode = true)
+        }
+    }
+
+    fun onToggleMemeFavoriteStatus(meme: MemeEntity){
+        viewModelScope.launch {
+            memeRepository.toggleFavorite(meme)
+        }
+    }
+
+
 }

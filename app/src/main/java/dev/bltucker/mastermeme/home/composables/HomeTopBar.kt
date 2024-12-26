@@ -36,9 +36,9 @@ enum class SortMode{
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(modifier: Modifier = Modifier,
-               isInSelectionMode: Boolean = false,
-               selectedCount: Int = 0,
-               sortMode: SortMode = SortMode.FAVORITES,
+               isInSelectionMode: Boolean,
+               selectedCount: Int,
+               sortMode: SortMode,
                onSortModeChange: (SortMode) -> Unit = {},
                onExitSelectionMode: () -> Unit = {},
                onShareSelectedClicked: () -> Unit = {},
@@ -131,7 +131,9 @@ private fun HomeTopBarPreview_NormalMode_FavoritesFirst() {
     MasterMemeTheme {
         HomeTopBar(
             isInSelectionMode = false,
-            sortMode = SortMode.FAVORITES
+            sortMode = SortMode.FAVORITES,
+            selectedCount = 0,
+            onSortModeChange = {},
         )
     }
 }
@@ -142,7 +144,8 @@ private fun HomeTopBarPreview_NormalMode_NewestFirst() {
     MasterMemeTheme {
         HomeTopBar(
             isInSelectionMode = false,
-            sortMode = SortMode.NEWEST
+            sortMode = SortMode.NEWEST,
+            selectedCount = 0
         )
     }
 }
@@ -153,7 +156,8 @@ private fun HomeTopBarPreview_SelectionMode_SingleItem() {
     MasterMemeTheme {
         HomeTopBar(
             isInSelectionMode = true,
-            selectedCount = 1
+            selectedCount = 1,
+            sortMode = SortMode.NEWEST
         )
     }
 }
@@ -164,7 +168,8 @@ private fun HomeTopBarPreview_SelectionMode_MultipleItems() {
     MasterMemeTheme {
         HomeTopBar(
             isInSelectionMode = true,
-            selectedCount = 5
+            selectedCount = 5,
+            sortMode = SortMode.NEWEST
         )
     }
 }
@@ -180,19 +185,23 @@ private fun HomeTopBarPreview_AllStates() {
         Column() {
             HomeTopBar(
                 isInSelectionMode = false,
-                sortMode = SortMode.FAVORITES
+                sortMode = SortMode.FAVORITES,
+                selectedCount = 0
             )
             HomeTopBar(
                 isInSelectionMode = false,
+                sortMode = SortMode.NEWEST,
+                selectedCount = 0
+            )
+            HomeTopBar(
+                isInSelectionMode = true,
+                selectedCount = 1,
                 sortMode = SortMode.NEWEST
             )
             HomeTopBar(
                 isInSelectionMode = true,
-                selectedCount = 1
-            )
-            HomeTopBar(
-                isInSelectionMode = true,
-                selectedCount = 5
+                selectedCount = 5,
+                sortMode = SortMode.NEWEST
             )
         }
     }

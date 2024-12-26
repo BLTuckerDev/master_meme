@@ -14,7 +14,8 @@ data class HomeModel(
     val showTemplateSheet: Boolean = false,
     val showMemeTemplateSearch: Boolean = false,
     val memeTemplates: List<MemeTemplate> = emptyList(),
-    val selectedMemeTemplate: MemeTemplate? = null
+    val selectedMemeTemplate: MemeTemplate? = null,
+    val isInSelectionMode: Boolean = false,
 ){
     val filteredMemes: List<MemeEntity> = when(sortMode){
         SortMode.FAVORITES -> favoriteMemes
