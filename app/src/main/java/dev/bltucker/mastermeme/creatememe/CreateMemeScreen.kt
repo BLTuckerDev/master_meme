@@ -3,6 +3,7 @@ package dev.bltucker.mastermeme.creatememe
 import ExitConfirmationDialog
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -14,9 +15,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,8 +35,11 @@ import androidx.navigation.toRoute
 import coil3.compose.AsyncImage
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeBottomBar
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeTopBar
+import dev.bltucker.mastermeme.creatememe.composables.EditMemeTextDialog
+import dev.bltucker.mastermeme.creatememe.composables.MemeTextOverlay
 import dev.bltucker.mastermeme.creatememe.composables.SaveOptionsSheet
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class CreateMemeTemplateArgs(val templateId: Int)
@@ -63,7 +75,10 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             onRedo = viewModel::onRedo,
             onToggleSaveOptions = viewModel::onToggleSaveOptions,
             onToggleExitDialog = viewModel::onToggleExitDialog,
-            onSaveMeme = viewModel::onSaveMeme
+            onSaveMeme = viewModel::onSaveMeme,
+
+            onShowEditMemeTextDialog = viewModel::onShowEditMemeTextDialog,
+            onHideEditMemeTextDialog = viewModel::onHideEditMemeTextDialog,
         )
     }
 }
@@ -73,12 +88,16 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
 fun CreateMemeScreen(
     model: CreateMemeModel,
     onBackPress: () -> Unit,
-    onAddTextBox: () -> Unit,
+
+    onShowEditMemeTextDialog: () -> Unit,
+    onHideEditMemeTextDialog: () -> Unit,
+
+    onAddTextBox: (MemeTextBox) -> Unit,
     onTextBoxSelected: (MemeTextBox) -> Unit,
     onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
     onTextBoxDeleted: (MemeTextBox) -> Unit,
     onUpdateTextBoxText: (MemeTextBox, String) -> Unit,
-    onUpdateTextBoxFontSize: (MemeTextBox, Float) -> Unit,
+    onUpdateTextBoxFontSize: (MemeTextBox, TextUnit) -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onToggleSaveOptions: () -> Unit,
@@ -86,6 +105,9 @@ fun CreateMemeScreen(
     onSaveMeme: (Bitmap) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    var lastClickOffset by remember { mutableStateOf(Offset.Zero) }
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -96,7 +118,10 @@ fun CreateMemeScreen(
         bottomBar = {
             CreateMemeBottomBar(
                 modifier = Modifier.navigationBarsPadding(),
-                onAddTextBox = onAddTextBox,
+                onAddTextBox = {
+                    lastClickOffset = Offset.Zero
+                    onShowEditMemeTextDialog()
+                },
                 onUndo = onUndo,
                 onRedo = onRedo,
                 onSave = onToggleSaveOptions,
@@ -112,12 +137,34 @@ fun CreateMemeScreen(
         ) {
             model.memeTemplate?.let { template ->
                 // TODO: Implement meme canvas with template image and draggable text boxes
-                AsyncImage(
-                    modifier = Modifier.fillMaxSize(),
-                    model = template.resourceId,
-                    contentDescription = template.name,
-                    contentScale = ContentScale.Crop
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures { offset ->
+                                    lastClickOffset = offset
+                                    onShowEditMemeTextDialog()
+                                }
+                            },
+                        model = template.resourceId,
+                        contentDescription = template.name,
+                        contentScale = ContentScale.Crop
+                    )
+
+                    model.textBoxes.forEach { textBox ->
+                        MemeTextOverlay(
+                            text = textBox.text,
+                            offset = textBox.position,
+                            fontSize = textBox.fontSize,
+                            fontFamily = textBox.fontFamily,
+                            color = textBox.color,
+                            isSelected = textBox == model.selectedTextBox,
+                            onDelete = { onTextBoxDeleted(textBox) },
+                            onTap = { onTextBoxSelected(textBox) }
+                        )
+                    }
+                }
             }
         }
 
@@ -142,6 +189,29 @@ fun CreateMemeScreen(
             ExitConfirmationDialog(
                 onDismiss = onToggleExitDialog,
                 onConfirm = { onBackPress() }
+            )
+        } else if(model.showEditMemeTextDialog){
+            EditMemeTextDialog(
+                text = "",
+                onDismiss = {
+                    lastClickOffset = Offset.Zero
+                    onHideEditMemeTextDialog()
+                },
+                onSave = { memeText ->
+
+                    val textBox = MemeTextBox(
+                        id = UUID.randomUUID().toString(),
+                        text = memeText,
+                        position = lastClickOffset,
+                        fontSize = 24.sp,
+                        fontFamily = FontFamily.Default,
+                        color = Color.White
+                    )
+
+                    lastClickOffset = Offset.Zero
+
+                    onAddTextBox(textBox)
+                },
             )
         }
     }

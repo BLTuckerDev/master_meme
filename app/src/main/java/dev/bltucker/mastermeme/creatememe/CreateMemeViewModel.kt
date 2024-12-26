@@ -2,6 +2,7 @@ package dev.bltucker.mastermeme.creatememe
 
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.TextUnit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,19 +31,13 @@ class CreateMemeViewModel @Inject constructor(
         }
     }
 
-    fun onAddTextBox() {
-        val newTextBox = MemeTextBox(
-            id = UUID.randomUUID().toString(),
-            text = "",
-            position = Offset(0f, 0f)
-        )
-
-        addAction(MemeAction.AddTextBox(newTextBox))
+    fun onAddTextBox(memeTextBox: MemeTextBox) {
+        addAction(MemeAction.AddTextBox(memeTextBox))
 
         mutableModel.update {
             it.copy(
-                textBoxes = it.textBoxes + newTextBox,
-                selectedTextBox = newTextBox
+                textBoxes = it.textBoxes + memeTextBox,
+                selectedTextBox = memeTextBox
             )
         }
     }
@@ -74,7 +69,7 @@ class CreateMemeViewModel @Inject constructor(
         updateTextBox(textBox, updatedTextBox)
     }
 
-    fun onUpdateTextBoxFontSize(textBox: MemeTextBox, fontSize: Float) {
+    fun onUpdateTextBoxFontSize(textBox: MemeTextBox, fontSize: TextUnit) {
         val updatedTextBox = textBox.copy(fontSize = fontSize)
         updateTextBox(textBox, updatedTextBox)
     }
@@ -192,6 +187,18 @@ class CreateMemeViewModel @Inject constructor(
             mutableModel.value.memeTemplate?.let { template ->
                 memeRepository.saveMeme(template.name, bitmap)
             }
+        }
+    }
+
+    fun onShowEditMemeTextDialog() {
+        mutableModel.update {
+            it.copy(showEditMemeTextDialog = true)
+        }
+    }
+
+    fun onHideEditMemeTextDialog(){
+        mutableModel.update {
+            it.copy(showEditMemeTextDialog = false)
         }
     }
 }
