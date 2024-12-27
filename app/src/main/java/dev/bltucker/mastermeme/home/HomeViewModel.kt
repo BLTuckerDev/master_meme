@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bltucker.mastermeme.common.MemeRepository
+import dev.bltucker.mastermeme.common.MemeShareController
 import dev.bltucker.mastermeme.common.room.MemeEntity
 import dev.bltucker.mastermeme.common.templates.MemeTemplate
 import dev.bltucker.mastermeme.common.templates.MemeTemplatesRepository
@@ -17,6 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val memeShareController: MemeShareController,
     private val memeTemplatesRepository: MemeTemplatesRepository,
     private val memeRepository: MemeRepository
 ) : ViewModel() {
@@ -115,6 +117,49 @@ class HomeViewModel @Inject constructor(
     fun onToggleMemeFavoriteStatus(meme: MemeEntity){
         viewModelScope.launch {
             memeRepository.toggleFavorite(meme)
+        }
+    }
+
+    fun onToggleSelected(memeEntity: MemeEntity) {
+        viewModelScope.launch {
+            if(mutableModel.value.selectedMemes.contains(memeEntity)) {
+                mutableModel.update {
+                    it.copy(selectedMemes = it.selectedMemes - memeEntity)
+                }
+            } else {
+                mutableModel.update {
+                    it.copy(selectedMemes = it.selectedMemes + memeEntity)
+                }
+            }
+        }
+    }
+
+    fun onExitSelectionMode() {
+        mutableModel.update {
+            it.copy(isInSelectionMode = false, selectedMemes = emptyList())
+        }
+    }
+
+    fun onShareSelectedMemes() {
+        val selectedMemes = mutableModel.value.selectedMemes
+        if(selectedMemes.isEmpty()){
+            return
+        }
+
+        viewModelScope.launch {
+            memeShareController.shareMemes(selectedMemes)
+        }
+    }
+
+    fun onDeleteSelectedMemes() {
+        viewModelScope.launch {
+            val selectedMemes = mutableModel.value.selectedMemes
+            selectedMemes.forEach { meme ->
+                memeRepository.deleteMeme(meme)
+            }
+            mutableModel.update {
+                it.copy(isInSelectionMode = false, selectedMemes = emptyList())
+            }
         }
     }
 

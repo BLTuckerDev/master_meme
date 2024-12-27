@@ -1,6 +1,7 @@
 package dev.bltucker.mastermeme.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -81,7 +82,11 @@ fun NavGraphBuilder.homeScreen(onNavigateToCreateMeme: (MemeTemplate) -> Unit){
             onCloseTemplateSearch = { viewModel.onSetTemplateSearchVisibility(false) },
             onExecuteTemplateSearch = { viewModel.onExecuteTemplateSearch() },
             onToggleMemeFavorite = viewModel::onToggleMemeFavoriteStatus,
-            onLongClickMeme = viewModel::onLongClickMeme
+            onLongClickMeme = viewModel::onLongClickMeme,
+            onToggleSelected = viewModel::onToggleSelected,
+            onExitSelectionMode = viewModel::onExitSelectionMode,
+            onShareSelectedMemes = viewModel::onShareSelectedMemes,
+            onDeleteSelectedMemes = viewModel::onDeleteSelectedMemes
         )
     }
 }
@@ -94,8 +99,13 @@ private fun HomeScreen(modifier : Modifier = Modifier,
 
                        onToggleMemeFavorite: (MemeEntity) -> Unit,
                        onLongClickMeme: (MemeEntity) -> Unit,
+                       onToggleSelected: (MemeEntity) -> Unit,
 
                        onSortModeChange: (SortMode) -> Unit = {},
+
+                       onExitSelectionMode: () -> Unit = {},
+                       onShareSelectedMemes: () -> Unit = {},
+                       onDeleteSelectedMemes: () -> Unit = {},
 
                        onTemplateSelected: (MemeTemplate) -> Unit = {},
                        onTemplateSearchQueryChange: (String) -> Unit = {},
@@ -109,9 +119,12 @@ private fun HomeScreen(modifier : Modifier = Modifier,
         topBar = {
             HomeTopBar(
                 sortMode = model.sortMode,
-                onSortModeChange = { sortMode -> onSortModeChange(sortMode) },
                 isInSelectionMode = model.isInSelectionMode,
                 selectedCount = model.selectedMemes.size,
+                onShareSelectedClicked = { onShareSelectedMemes() },
+                onDeleteSelectedClicked = { onDeleteSelectedMemes() },
+                onSortModeChange = { sortMode -> onSortModeChange(sortMode) },
+                onExitSelectionMode = { onExitSelectionMode() },
             )
         },
         floatingActionButton = {
@@ -139,6 +152,7 @@ private fun HomeScreen(modifier : Modifier = Modifier,
                 model = model,
                 onLongClick = onLongClickMeme,
                 onFavoriteClick = onToggleMemeFavorite,
+                onToggleSelected = onToggleSelected
             )
         }
 
@@ -168,6 +182,7 @@ private fun HomeScreen(modifier : Modifier = Modifier,
 @Composable
 private fun MemeList(modifier: Modifier = Modifier,
                      model: HomeModel,
+                     onToggleSelected: (MemeEntity) -> Unit = {},
                      onLongClick: (MemeEntity) -> Unit = {},
                      onFavoriteClick: (MemeEntity) -> Unit = {}) {
     LazyVerticalGrid(
@@ -181,9 +196,10 @@ private fun MemeList(modifier: Modifier = Modifier,
                 modifier = Modifier.fillMaxSize(),
                 meme = meme,
                 isSelectionMode = model.isInSelectionMode,
-                isSelected = false,
+                isSelected = model.selectedMemes.contains(meme),
                 onLongClick = { onLongClick(meme) },
-                onFavoriteClick = { onFavoriteClick(meme) }
+                onFavoriteClick = { onFavoriteClick(meme) },
+                onToggleSelected = onToggleSelected,
             )
         }
     }
@@ -234,7 +250,8 @@ private fun HomeScreenEmptyStatePreview() {
             onCloseTemplateSearch = {},
             onExecuteTemplateSearch = {},
             onToggleMemeFavorite = {},
-            onLongClickMeme = {}
+            onLongClickMeme = {},
+            onToggleSelected = {}
         )
     }
 }
