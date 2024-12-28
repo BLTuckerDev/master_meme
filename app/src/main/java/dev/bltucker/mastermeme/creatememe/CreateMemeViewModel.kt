@@ -33,7 +33,7 @@ class CreateMemeViewModel @Inject constructor(
         }
     }
 
-    fun onUpdateSelectedTextBox(textUnit: TextUnit, fontFamily: FontFamily, color: Color) {
+    fun onUpdateSelectedTextBoxProperties(textUnit: TextUnit, fontFamily: FontFamily, color: Color) {
         val selectedTextBox = mutableModel.value.selectedTextBox ?: return
         val updatedTextBox = selectedTextBox.copy(
             fontSize = textUnit,
@@ -67,7 +67,7 @@ class CreateMemeViewModel @Inject constructor(
         }
     }
 
-    fun onTemporaryTextBoxUpdate(fontSize: TextUnit? = null, fontFamily: FontFamily? = null, color: Color? = null) {
+    fun onTemporaryTextBoxPropertiesUpdate(fontSize: TextUnit? = null, fontFamily: FontFamily? = null, color: Color? = null) {
         val currentTextBox = mutableModel.value.selectedTextBox ?: return
         val currentTemp = mutableModel.value.temporaryTextBox ?: currentTextBox
 
@@ -79,21 +79,6 @@ class CreateMemeViewModel @Inject constructor(
 
         mutableModel.update {
             it.copy(temporaryTextBox = updatedTextBox)
-        }
-    }
-
-    fun onConfirmTextBoxChanges() {
-        val selectedTextBox = mutableModel.value.selectedTextBox ?: return
-        val temporaryTextBox = mutableModel.value.temporaryTextBox ?: return
-
-        updateTextBox(selectedTextBox, temporaryTextBox)
-
-        mutableModel.update {
-            it.copy(
-                selectedTextBox = null,
-                temporaryTextBox = null,
-                selectedTextEditOption = TextEditOption.NONE
-            )
         }
     }
 
@@ -190,6 +175,7 @@ class CreateMemeViewModel @Inject constructor(
                     it.copy(
                         textBoxes = it.textBoxes.map { box ->
                             if (box.id == actionToUndo.textBox.id) {
+                                Log.d("UNDO_ACTION", "BoxPosition: ${box.position} , old position: ${actionToUndo.oldPosition}")
                                 box.copy(position = actionToUndo.oldPosition)
                             } else box
                         },

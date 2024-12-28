@@ -107,8 +107,8 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
 
             onTextEditOptionSelected = viewModel::onTextEditOptionSelected,
 
-            onUpdateTextBoxProperties = viewModel::onUpdateSelectedTextBox,
-            onTemporaryUpdate = viewModel::onTemporaryTextBoxUpdate,
+            onUpdateTextBoxProperties = viewModel::onUpdateSelectedTextBoxProperties,
+            onTemporaryUpdate = viewModel::onTemporaryTextBoxPropertiesUpdate,
             onTextBoxMoved = viewModel::onTextBoxMoved,
             onDoubleTapTextBox = viewModel::onShowEditMemeTextDialog,
             onUpdateTextBox = viewModel::onTextBoxUpdated
@@ -228,6 +228,7 @@ fun CreateMemeScreen(
 
                     model.textBoxes.forEach { textBox ->
                         val displayedBox = model.getDisplayedTextBox(textBox.id) ?: textBox
+                        Log.d("UNDO_ACTION", "Drawing Textbox: ${displayedBox.position}")
                         MemeTextOverlay(
                             memeTextBox = displayedBox,
                             onDoubleTap = onDoubleTapTextBox,

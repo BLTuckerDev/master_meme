@@ -54,9 +54,9 @@ fun MemeTextOverlay(
     parentBounds: () -> Size,
     onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
 ) {
-    var offsetX by remember { mutableFloatStateOf(memeTextBox.position.x) }
-    var offsetY by remember { mutableFloatStateOf(memeTextBox.position.y) }
-    var textSize by remember { mutableStateOf(Size.Zero) }
+    var offsetX by remember(memeTextBox.position) { mutableFloatStateOf(memeTextBox.position.x) }
+    var offsetY by remember(memeTextBox.position) { mutableFloatStateOf(memeTextBox.position.y) }
+    var textSize by remember(memeTextBox.fontSize, memeTextBox.text) { mutableStateOf(Size.Zero) }
 
     val bounds = parentBounds()
 
