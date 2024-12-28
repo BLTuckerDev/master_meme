@@ -12,6 +12,7 @@ data class CreateMemeModel(
 
     val textBoxes: List<MemeTextBox> = emptyList(),
     val selectedTextBox: MemeTextBox? = null,
+    val temporaryTextBox: MemeTextBox? = null,
 
     val showSaveOptions: Boolean = false,
     val showExitDialog: Boolean = false,
@@ -24,6 +25,13 @@ data class CreateMemeModel(
 ){
 
     val showEditTextBar: Boolean = selectedTextBox != null
+
+    fun getDisplayedTextBox(id: String): MemeTextBox? {
+        return when {
+            temporaryTextBox?.id == id -> temporaryTextBox
+            else -> textBoxes.find { it.id == id }
+        }
+    }
 }
 
 data class MemeTextBox(

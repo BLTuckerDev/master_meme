@@ -80,7 +80,7 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             onTextBoxMoved = viewModel::onTextBoxMoved,
             onTextBoxDeleted = viewModel::onTextBoxDeleted,
             onUpdateTextBoxText = viewModel::onUpdateTextBoxText,
-            onHideEditTextBar = viewModel::onHideEditTextBar,
+            onHideEditTextBar = viewModel::onCancelTextBoxChanges,
             onUndo = viewModel::onUndo,
             onRedo = viewModel::onRedo,
             onToggleSaveOptions = viewModel::onToggleSaveOptions,
@@ -91,7 +91,8 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             onHideEditMemeTextDialog = viewModel::onHideEditMemeTextDialog,
 
             onTextEditOptionSelected = viewModel::onTextEditOptionSelected,
-            onUpdateTextBox = viewModel::onUpdateSelectedTextBox
+            onUpdateTextBox = viewModel::onUpdateSelectedTextBox,
+            onTemporaryUpdate = viewModel::onTemporaryTextBoxUpdate
         )
     }
 }
@@ -107,6 +108,7 @@ fun CreateMemeScreen(
     onTextEditOptionSelected: (TextEditOption) -> Unit,
     onUpdateTextBox: (TextUnit, FontFamily, Color) -> Unit,
     onHideEditTextBar: () -> Unit,
+    onTemporaryUpdate: (TextUnit?, FontFamily?, Color?) -> Unit,
 
 
     onShowEditMemeTextDialog: () -> Unit,
@@ -147,7 +149,8 @@ fun CreateMemeScreen(
                     currentColor = model.selectedTextBox!!.color,
                     onOptionSelected = onTextEditOptionSelected,
                     onConfirmChanges = onUpdateTextBox,
-                    onCancel = onHideEditTextBar
+                    onCancel = onHideEditTextBar,
+                    onTemporaryUpdate = onTemporaryUpdate
                 )
             } else {
                 CreateMemeBottomBar(
@@ -192,12 +195,13 @@ fun CreateMemeScreen(
                     )
 
                     model.textBoxes.forEach { textBox ->
+                        val displayedBox = model.getDisplayedTextBox(textBox.id) ?: textBox
                         MemeTextOverlay(
-                            text = textBox.text,
-                            offset = textBox.position,
-                            fontSize = textBox.fontSize,
-                            fontFamily = textBox.fontFamily,
-                            color = textBox.color,
+                            text = displayedBox.text,
+                            offset = displayedBox.position,
+                            fontSize = displayedBox.fontSize,
+                            fontFamily = displayedBox.fontFamily,
+                            color = displayedBox.color,
                             isSelected = textBox == model.selectedTextBox,
                             onDelete = { onTextBoxDeleted(textBox) },
                             onTap = { onTextBoxSelected(textBox) }

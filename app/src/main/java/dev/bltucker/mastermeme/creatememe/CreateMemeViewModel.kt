@@ -62,7 +62,50 @@ class CreateMemeViewModel @Inject constructor(
 
     fun onTextBoxSelected(textBox: MemeTextBox) {
         mutableModel.update {
-            it.copy(selectedTextBox = textBox)
+            it.copy(
+                selectedTextBox = textBox,
+                temporaryTextBox = null
+            )
+        }
+    }
+
+    fun onTemporaryTextBoxUpdate(fontSize: TextUnit? = null, fontFamily: FontFamily? = null, color: Color? = null) {
+        val currentTextBox = mutableModel.value.selectedTextBox ?: return
+        val currentTemp = mutableModel.value.temporaryTextBox ?: currentTextBox
+
+        val updatedTextBox = currentTemp.copy(
+            fontSize = fontSize ?: currentTemp.fontSize,
+            fontFamily = fontFamily ?: currentTemp.fontFamily,
+            color = color ?: currentTemp.color
+        )
+
+        mutableModel.update {
+            it.copy(temporaryTextBox = updatedTextBox)
+        }
+    }
+
+    fun onConfirmTextBoxChanges() {
+        val selectedTextBox = mutableModel.value.selectedTextBox ?: return
+        val temporaryTextBox = mutableModel.value.temporaryTextBox ?: return
+
+        updateTextBox(selectedTextBox, temporaryTextBox)
+
+        mutableModel.update {
+            it.copy(
+                selectedTextBox = null,
+                temporaryTextBox = null,
+                selectedTextEditOption = TextEditOption.NONE
+            )
+        }
+    }
+
+    fun onCancelTextBoxChanges() {
+        mutableModel.update {
+            it.copy(
+                selectedTextBox = null,
+                temporaryTextBox = null,
+                selectedTextEditOption = TextEditOption.NONE
+            )
         }
     }
 
@@ -110,7 +153,9 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes - actionToUndo.textBox,
-                        currentActionIndex = it.currentActionIndex - 1
+                        currentActionIndex = it.currentActionIndex - 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -120,7 +165,9 @@ class CreateMemeViewModel @Inject constructor(
                         textBoxes = it.textBoxes.map { box ->
                             if (box.id == actionToUndo.newTextBox.id) actionToUndo.oldTextBox else box
                         },
-                        currentActionIndex = it.currentActionIndex - 1
+                        currentActionIndex = it.currentActionIndex - 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -128,7 +175,9 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes + actionToUndo.textBox,
-                        currentActionIndex = it.currentActionIndex - 1
+                        currentActionIndex = it.currentActionIndex - 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -144,7 +193,9 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes + actionToRedo.textBox,
-                        currentActionIndex = it.currentActionIndex + 1
+                        currentActionIndex = it.currentActionIndex + 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -154,7 +205,9 @@ class CreateMemeViewModel @Inject constructor(
                         textBoxes = it.textBoxes.map { box ->
                             if (box.id == actionToRedo.oldTextBox.id) actionToRedo.newTextBox else box
                         },
-                        currentActionIndex = it.currentActionIndex + 1
+                        currentActionIndex = it.currentActionIndex + 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -162,7 +215,9 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes - actionToRedo.textBox,
-                        currentActionIndex = it.currentActionIndex + 1
+                        currentActionIndex = it.currentActionIndex + 1,
+                        selectedTextBox = null,
+                        temporaryTextBox = null
                     )
                 }
             }
@@ -225,11 +280,4 @@ class CreateMemeViewModel @Inject constructor(
             it.copy(selectedTextEditOption = option)
         }
     }
-
-    fun onHideEditTextBar() {
-        mutableModel.update {
-            it.copy(selectedTextBox = null)
-        }
-    }
-
 }
