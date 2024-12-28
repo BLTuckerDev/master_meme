@@ -4,11 +4,15 @@ import ExitConfirmationDialog
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -17,17 +21,22 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -75,22 +84,26 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             model = model,
 
             onBackPress = onNavigateBack,
+
             onAddTextBox = viewModel::onAddTextBox,
+
             onTextBoxSelected = viewModel::onTextBoxSelected,
-            onTextBoxMoved = viewModel::onTextBoxMoved,
             onTextBoxDeleted = viewModel::onTextBoxDeleted,
-            onUpdateTextBoxText = viewModel::onUpdateTextBoxText,
             onHideEditTextBar = viewModel::onCancelTextBoxChanges,
+
             onUndo = viewModel::onUndo,
             onRedo = viewModel::onRedo,
+
             onToggleSaveOptions = viewModel::onToggleSaveOptions,
             onToggleExitDialog = viewModel::onToggleExitDialog,
+
             onSaveMeme = viewModel::onSaveMeme,
 
             onShowEditMemeTextDialog = viewModel::onShowEditMemeTextDialog,
             onHideEditMemeTextDialog = viewModel::onHideEditMemeTextDialog,
 
             onTextEditOptionSelected = viewModel::onTextEditOptionSelected,
+
             onUpdateTextBox = viewModel::onUpdateSelectedTextBox,
             onTemporaryUpdate = viewModel::onTemporaryTextBoxUpdate
         )
@@ -116,9 +129,7 @@ fun CreateMemeScreen(
 
     onAddTextBox: (MemeTextBox) -> Unit,
     onTextBoxSelected: (MemeTextBox) -> Unit,
-    onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
     onTextBoxDeleted: (MemeTextBox) -> Unit,
-    onUpdateTextBoxText: (MemeTextBox, String) -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onToggleSaveOptions: () -> Unit,
@@ -173,16 +184,27 @@ fun CreateMemeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
+                contentAlignment = Alignment.TopCenter
         ) {
             model.memeTemplate?.let { template ->
-                // TODO: Implement meme canvas with template image and draggable text boxes
+
+                var imageHeight by remember { mutableStateOf(0) }
+                var parentBounds by remember { mutableStateOf(Size.Zero) }
+
                 Box(modifier = Modifier
                     .capturable(captureController)
-                    .fillMaxSize()) {
+                    .fillMaxWidth()
+                    .onSizeChanged { size ->
+                        parentBounds = Size(size.width.toFloat(), size.height.toFloat())
+                    }
+                    ) {
                     AsyncImage(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .onSizeChanged { size ->
+                                imageHeight = size.height
+                            }
                             .pointerInput(Unit) {
                                 detectTapGestures { offset ->
                                     lastClickOffset = offset
@@ -204,7 +226,8 @@ fun CreateMemeScreen(
                             color = displayedBox.color,
                             isSelected = textBox == model.selectedTextBox,
                             onDelete = { onTextBoxDeleted(textBox) },
-                            onTap = { onTextBoxSelected(textBox) }
+                            onTap = { onTextBoxSelected(textBox) },
+                            parentBounds = { parentBounds }
                         )
                     }
                 }

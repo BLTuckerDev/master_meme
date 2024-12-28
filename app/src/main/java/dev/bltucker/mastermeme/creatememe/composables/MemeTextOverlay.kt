@@ -21,13 +21,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,19 +52,36 @@ fun MemeTextOverlay(
     isSelected: Boolean,
     onDelete: () -> Unit,
     onTap: () -> Unit,
-
-    ) {
+    parentBounds: () -> Size
+) {
     var offsetX by remember { mutableFloatStateOf(offset.x) }
     var offsetY by remember { mutableFloatStateOf(offset.y) }
+    var textSize by remember { mutableStateOf(Size.Zero) }
+
+    val bounds = parentBounds()
 
     Box(
         modifier = modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .onSizeChanged { size ->
+                textSize = Size(size.width.toFloat(), size.height.toFloat())
+            }
             .pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
-                    offsetX += dragAmount.x
-                    offsetY += dragAmount.y
+
+                    // Calculate new position
+                    val newX = (offsetX + dragAmount.x).coerceIn(
+                        0f,
+                        bounds.width - textSize.width
+                    )
+                    val newY = (offsetY + dragAmount.y).coerceIn(
+                        0f,
+                        bounds.height - textSize.height
+                    )
+
+                    offsetX = newX
+                    offsetY = newY
                 }
             },
     ) {
@@ -125,7 +145,8 @@ private fun MemeTextOverlayPreview_Selected() {
                 isSelected = true,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f)
+                offset = Offset(0f, 0f),
+                parentBounds = { Size(100f, 100f) }
             )
         }
     }
@@ -144,7 +165,8 @@ private fun MemeTextOverlayPreview_Unselected() {
                 isSelected = false,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f)
+                offset = Offset(0f, 0f),
+                parentBounds = { Size(100f, 100f) }
             )
         }
     }
@@ -163,7 +185,8 @@ private fun MemeTextOverlayPreview_LongText() {
                 isSelected = true,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f)
+                offset = Offset(0f, 0f),
+                parentBounds = { Size(100f, 100f) }
             )
         }
     }

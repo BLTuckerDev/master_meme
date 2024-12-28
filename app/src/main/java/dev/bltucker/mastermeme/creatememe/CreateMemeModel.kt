@@ -47,6 +47,7 @@ sealed class MemeAction {
     data class AddTextBox(val textBox: MemeTextBox) : MemeAction()
     data class UpdateTextBox(val oldTextBox: MemeTextBox, val newTextBox: MemeTextBox) : MemeAction()
     data class DeleteTextBox(val textBox: MemeTextBox) : MemeAction()
+    data class MoveTextBox(val textBox: MemeTextBox, val oldPosition: Offset, val newPosition: Offset) : MemeAction()
 }
 
 enum class TextEditOption {

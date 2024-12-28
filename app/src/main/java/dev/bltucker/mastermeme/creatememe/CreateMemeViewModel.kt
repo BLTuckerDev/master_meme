@@ -110,8 +110,18 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     fun onTextBoxMoved(textBox: MemeTextBox, newPosition: Offset) {
+        val oldPosition = textBox.position
         val updatedTextBox = textBox.copy(position = newPosition)
-        updateTextBox(textBox, updatedTextBox)
+
+        addAction(MemeAction.MoveTextBox(textBox, oldPosition, newPosition))
+
+        mutableModel.update {
+            it.copy(
+                textBoxes = it.textBoxes.map { box ->
+                    if (box.id == textBox.id) updatedTextBox else box
+                }
+            )
+        }
     }
 
     fun onTextBoxDeleted(textBox: MemeTextBox) {
@@ -181,6 +191,19 @@ class CreateMemeViewModel @Inject constructor(
                     )
                 }
             }
+
+            is MemeAction.MoveTextBox -> {
+                mutableModel.update {
+                    it.copy(
+                        textBoxes = it.textBoxes.map { box ->
+                            if (box.id == actionToUndo.textBox.id) {
+                                box.copy(position = actionToUndo.oldPosition)
+                            } else box
+                        },
+                        currentActionIndex = it.currentActionIndex - 1
+                    )
+                }
+            }
         }
     }
 
@@ -218,6 +241,18 @@ class CreateMemeViewModel @Inject constructor(
                         currentActionIndex = it.currentActionIndex + 1,
                         selectedTextBox = null,
                         temporaryTextBox = null
+                    )
+                }
+            }
+            is MemeAction.MoveTextBox -> {
+                mutableModel.update {
+                    it.copy(
+                        textBoxes = it.textBoxes.map { box ->
+                            if (box.id == actionToRedo.textBox.id) {
+                                box.copy(position = actionToRedo.newPosition)
+                            } else box
+                        },
+                        currentActionIndex = it.currentActionIndex + 1
                     )
                 }
             }
