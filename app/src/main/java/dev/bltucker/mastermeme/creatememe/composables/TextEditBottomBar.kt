@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.bltucker.mastermeme.R
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
+import dev.bltucker.mastermeme.common.theme.MemeFont
 
 enum class TextEditOption {
     FONT,
@@ -191,7 +193,6 @@ private fun FontSizeSelector(
         }
     }
 }
-
 @Composable
 private fun FontSelector(
     selectedFont: FontFamily,
@@ -202,7 +203,8 @@ private fun FontSelector(
         FontFamily.Serif,
         FontFamily.SansSerif,
         FontFamily.Monospace,
-        FontFamily.Cursive
+        FontFamily.Cursive,
+        MemeFont
     )
 
     Surface(
@@ -232,6 +234,15 @@ private fun FontSelector(
     }
 }
 
+private fun getFontName(font: FontFamily): String {
+    return when(font) {
+        FontFamily.Default -> "Default"
+        FontFamily.SansSerif -> "Sans Serif"
+        FontFamily.Serif -> "Serif"
+        FontFamily.Monospace -> "Monospace"
+        else -> "Custom"
+    }
+}
 @Composable
 private fun ColorSelector(
     selectedColor: Color,
