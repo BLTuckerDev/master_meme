@@ -21,7 +21,8 @@ data class CreateMemeModel(
     val selectedTextEditOption: TextEditOption = TextEditOption.NONE,
 
     val lastActions: List<MemeAction> = emptyList(),
-    val currentActionIndex: Int = -1
+    val currentActionIndex: Int = -1,
+    val saveCompleted: Boolean = false
 ){
 
     val showEditTextBar: Boolean = selectedTextBox != null

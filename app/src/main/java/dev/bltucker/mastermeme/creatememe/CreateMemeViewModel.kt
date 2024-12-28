@@ -291,6 +291,9 @@ class CreateMemeViewModel @Inject constructor(
             mutableModel.value.memeTemplate?.let { template ->
                 try{
                     memeRepository.saveMeme(template.name, bitmap)
+                    mutableModel.update {
+                        it.copy(saveCompleted = true)
+                    }
                 } catch (ex: Exception){
                     Log.d("SAVE_MEME", "Error Saving Meme: $ex")
                 }

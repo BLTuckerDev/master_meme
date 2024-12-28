@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ExperimentalComposeApi
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,6 +75,11 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             onStopOrDispose {  }
         }
 
+        LaunchedEffect(model.saveCompleted) {
+            if(model.saveCompleted){
+                onNavigateBack()
+            }
+        }
 
         BackHandler(onBack = {
             viewModel.onToggleExitDialog()
@@ -189,7 +195,7 @@ fun CreateMemeScreen(
         ) {
             model.memeTemplate?.let { template ->
 
-                var imageHeight by remember { mutableStateOf(0) }
+                var imageHeight by remember { mutableIntStateOf(0) }
                 var parentBounds by remember { mutableStateOf(Size.Zero) }
 
                 Box(modifier = Modifier
