@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -28,6 +27,10 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,14 +44,7 @@ import androidx.compose.ui.unit.sp
 import dev.bltucker.mastermeme.R
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 import dev.bltucker.mastermeme.common.theme.MemeFont
-
-enum class TextEditOption {
-    FONT,
-    SIZE,
-    COLOR,
-    NONE
-}
-
+import dev.bltucker.mastermeme.creatememe.TextEditOption
 
 
 @Composable
@@ -56,30 +52,36 @@ fun TextEditBottomBar(
     modifier: Modifier = Modifier,
     currentlySelectedOption: TextEditOption = TextEditOption.NONE,
     currentFontSize: TextUnit,
-    selectedFontFamily: FontFamily,
-    selectedColor: Color,
+    currentFontFamily: FontFamily,
+    currentColor: Color,
     onOptionSelected: (TextEditOption) -> Unit,
-    onFontSizeChanged: (Float) -> Unit,
-    onFontSelected: (FontFamily) -> Unit,
-    onColorSelected: (Color) -> Unit,
-    onConfirm: () -> Unit,
+    onConfirmChanges: (TextUnit, FontFamily, Color) -> Unit,
     onCancel: () -> Unit,
+    ) {
 
-) {
+    var color by remember { mutableStateOf(currentColor) }
+    var fontSize by remember { mutableStateOf(currentFontSize) }
+    var fontFamily by remember { mutableStateOf(currentFontFamily) }
 
     Column(modifier = modifier) {
         when (currentlySelectedOption) {
             TextEditOption.SIZE -> FontSizeSelector(
                 currentSize = currentFontSize,
-                onSizeChanged = onFontSizeChanged
+                onSizeChanged = {
+                    fontSize = it
+                }
             )
             TextEditOption.FONT -> FontSelector(
-                selectedFont = selectedFontFamily,
-                onFontSelected = onFontSelected
+                selectedFont = currentFontFamily,
+                onFontSelected = {
+                    fontFamily = it
+                }
             )
             TextEditOption.COLOR -> ColorSelector(
-                selectedColor = selectedColor,
-                onColorSelected = onColorSelected
+                selectedColor = currentColor,
+                onColorSelected = {
+                    color = it
+                }
             )
             TextEditOption.NONE -> { /* Nothing to show */ }
         }
@@ -132,7 +134,9 @@ fun TextEditBottomBar(
                     }
                 }
 
-                IconButton(onClick = onConfirm) {
+                IconButton(onClick = {
+                    onConfirmChanges(fontSize, fontFamily, color)
+                }) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Confirm text changes",
@@ -148,7 +152,7 @@ fun TextEditBottomBar(
 @Composable
 private fun FontSizeSelector(
     currentSize: TextUnit,
-    onSizeChanged: (Float) -> Unit
+    onSizeChanged: (TextUnit) -> Unit
 ) {
     Surface(
         tonalElevation = 1.dp,
@@ -168,7 +172,9 @@ private fun FontSizeSelector(
             Slider(
                 modifier = Modifier.weight(1f),
                 value = currentSize.value,
-                onValueChange = onSizeChanged,
+                onValueChange = { newSize ->
+                    onSizeChanged(TextUnit(newSize, currentSize.type))
+                },
                 valueRange = 12f..72f,
                 thumb = {
                     Box(
@@ -234,15 +240,7 @@ private fun FontSelector(
     }
 }
 
-private fun getFontName(font: FontFamily): String {
-    return when(font) {
-        FontFamily.Default -> "Default"
-        FontFamily.SansSerif -> "Sans Serif"
-        FontFamily.Serif -> "Serif"
-        FontFamily.Monospace -> "Monospace"
-        else -> "Custom"
-    }
-}
+
 @Composable
 private fun ColorSelector(
     selectedColor: Color,
@@ -293,14 +291,11 @@ private fun ColorSelector(
 private fun TextEditBottomBarPreview_NoEdit() {
     MasterMemeTheme {
         TextEditBottomBar(
-            onConfirm = {},
+            onConfirmChanges = { _, _, _ -> },
             onCancel = {},
             currentFontSize = 16.sp,
-            selectedFontFamily = FontFamily.Default,
-            selectedColor = Color.Black,
-            onFontSizeChanged = {},
-            onFontSelected = {},
-            onColorSelected = {},
+            currentFontFamily = FontFamily.Default,
+            currentColor = Color.Black,
             onOptionSelected = {}
         )
     }
@@ -311,15 +306,12 @@ private fun TextEditBottomBarPreview_NoEdit() {
 private fun TextEditBottomBarPreview_FontSize() {
     MasterMemeTheme {
         TextEditBottomBar(
-            onConfirm = {},
+            onConfirmChanges = { _, _, _ -> },
             onCancel = {},
             currentlySelectedOption = TextEditOption.SIZE,
             currentFontSize = 16.sp,
-            selectedFontFamily = FontFamily.Default,
-            selectedColor = Color.Black,
-            onFontSizeChanged = {},
-            onFontSelected = {},
-            onColorSelected = {},
+            currentFontFamily = FontFamily.Default,
+            currentColor = Color.Black,
             onOptionSelected = {}
         )
     }
@@ -330,15 +322,12 @@ private fun TextEditBottomBarPreview_FontSize() {
 private fun TextEditBottomBarPreview_FontSelect() {
     MasterMemeTheme {
         TextEditBottomBar(
-            onConfirm = {},
+            onConfirmChanges = { _, _, _ -> },
             onCancel = {},
             currentlySelectedOption = TextEditOption.FONT,
             currentFontSize = 16.sp,
-            selectedFontFamily = FontFamily.Default,
-            selectedColor = Color.Black,
-            onFontSizeChanged = {},
-            onFontSelected = {},
-            onColorSelected = {},
+            currentFontFamily = FontFamily.Default,
+            currentColor = Color.Black,
             onOptionSelected = {}
         )
     }
@@ -349,16 +338,13 @@ private fun TextEditBottomBarPreview_FontSelect() {
 private fun TextEditBottomBarPreview_ColorSelect() {
     MasterMemeTheme {
         TextEditBottomBar(
-            onConfirm = {},
+            onConfirmChanges = { _, _, _ -> },
             onCancel = {},
             currentlySelectedOption = TextEditOption.COLOR,
             currentFontSize = 16.sp,
-            selectedFontFamily = FontFamily.Default,
-            selectedColor = Color.Black,
-            onFontSizeChanged = {},
-            onFontSelected = {},
-            onColorSelected = {},
-            onOptionSelected = {}
+            currentFontFamily = FontFamily.Default,
+            currentColor = Color.Black,
+            onOptionSelected = {_ ->}
         )
     }
 }

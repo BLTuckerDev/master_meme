@@ -43,6 +43,7 @@ import dev.bltucker.mastermeme.creatememe.composables.CreateMemeTopBar
 import dev.bltucker.mastermeme.creatememe.composables.EditMemeTextDialog
 import dev.bltucker.mastermeme.creatememe.composables.MemeTextOverlay
 import dev.bltucker.mastermeme.creatememe.composables.SaveOptionsSheet
+import dev.bltucker.mastermeme.creatememe.composables.TextEditBottomBar
 import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.launch
@@ -72,13 +73,14 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
         CreateMemeScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
+
             onBackPress = onNavigateBack,
             onAddTextBox = viewModel::onAddTextBox,
             onTextBoxSelected = viewModel::onTextBoxSelected,
             onTextBoxMoved = viewModel::onTextBoxMoved,
             onTextBoxDeleted = viewModel::onTextBoxDeleted,
             onUpdateTextBoxText = viewModel::onUpdateTextBoxText,
-            onUpdateTextBoxFontSize = viewModel::onUpdateTextBoxFontSize,
+            onHideEditTextBar = viewModel::onHideEditTextBar,
             onUndo = viewModel::onUndo,
             onRedo = viewModel::onRedo,
             onToggleSaveOptions = viewModel::onToggleSaveOptions,
@@ -87,6 +89,9 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
 
             onShowEditMemeTextDialog = viewModel::onShowEditMemeTextDialog,
             onHideEditMemeTextDialog = viewModel::onHideEditMemeTextDialog,
+
+            onTextEditOptionSelected = viewModel::onTextEditOptionSelected,
+            onUpdateTextBox = viewModel::onUpdateSelectedTextBox
         )
     }
 }
@@ -99,6 +104,11 @@ fun CreateMemeScreen(
     model: CreateMemeModel,
     onBackPress: () -> Unit,
 
+    onTextEditOptionSelected: (TextEditOption) -> Unit,
+    onUpdateTextBox: (TextUnit, FontFamily, Color) -> Unit,
+    onHideEditTextBar: () -> Unit,
+
+
     onShowEditMemeTextDialog: () -> Unit,
     onHideEditMemeTextDialog: () -> Unit,
 
@@ -107,7 +117,6 @@ fun CreateMemeScreen(
     onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
     onTextBoxDeleted: (MemeTextBox) -> Unit,
     onUpdateTextBoxText: (MemeTextBox, String) -> Unit,
-    onUpdateTextBoxFontSize: (MemeTextBox, TextUnit) -> Unit,
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onToggleSaveOptions: () -> Unit,
@@ -129,18 +138,32 @@ fun CreateMemeScreen(
             )
         },
         bottomBar = {
-            CreateMemeBottomBar(
-                modifier = Modifier.navigationBarsPadding(),
-                onAddTextBox = {
-                    lastClickOffset = Offset.Zero
-                    onShowEditMemeTextDialog()
-                },
-                onUndo = onUndo,
-                onRedo = onRedo,
-                onSave = onToggleSaveOptions,
-                canUndo = model.currentActionIndex >= 0,
-                canRedo = model.currentActionIndex < model.lastActions.size - 1
-            )
+            if(model.showEditTextBar){
+                TextEditBottomBar(
+                    currentlySelectedOption = model.selectedTextEditOption,
+                    currentFontSize = model.selectedTextBox!!.fontSize,
+                    currentFontFamily = model.selectedTextBox.fontFamily,
+                    currentColor = model.selectedTextBox!!.color,
+                    onOptionSelected = onTextEditOptionSelected,
+                    onConfirmChanges = onUpdateTextBox,
+                    onCancel = onHideEditTextBar
+                )
+            } else {
+                CreateMemeBottomBar(
+                    modifier = Modifier.navigationBarsPadding(),
+                    onAddTextBox = {
+                        lastClickOffset = Offset.Zero
+                        onShowEditMemeTextDialog()
+                    },
+                    onUndo = onUndo,
+                    onRedo = onRedo,
+                    onSave = onToggleSaveOptions,
+                    canUndo = model.currentActionIndex >= 0,
+                    canRedo = model.currentActionIndex < model.lastActions.size - 1
+                )
+            }
+
+
         },
     ) { paddingValues ->
         Box(

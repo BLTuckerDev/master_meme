@@ -3,6 +3,8 @@ package dev.bltucker.mastermeme.creatememe
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,6 +31,21 @@ class CreateMemeViewModel @Inject constructor(
         val template = memeTemplateRepository.getTemplateById(templateId)
         mutableModel.update {
             it.copy(memeTemplate = template)
+        }
+    }
+
+    fun onUpdateSelectedTextBox(textUnit: TextUnit, fontFamily: FontFamily, color: Color) {
+        val selectedTextBox = mutableModel.value.selectedTextBox ?: return
+        val updatedTextBox = selectedTextBox.copy(
+            fontSize = textUnit,
+            fontFamily = fontFamily,
+            color = color
+        )
+
+        updateTextBox(selectedTextBox, updatedTextBox)
+
+        mutableModel.update {
+            it.copy(selectedTextBox = null)
         }
     }
 
@@ -70,10 +87,6 @@ class CreateMemeViewModel @Inject constructor(
         updateTextBox(textBox, updatedTextBox)
     }
 
-    fun onUpdateTextBoxFontSize(textBox: MemeTextBox, fontSize: TextUnit) {
-        val updatedTextBox = textBox.copy(fontSize = fontSize)
-        updateTextBox(textBox, updatedTextBox)
-    }
 
     private fun updateTextBox(oldTextBox: MemeTextBox, newTextBox: MemeTextBox) {
         addAction(MemeAction.UpdateTextBox(oldTextBox, newTextBox))
@@ -206,4 +219,17 @@ class CreateMemeViewModel @Inject constructor(
             it.copy(showEditMemeTextDialog = false)
         }
     }
+
+    fun onTextEditOptionSelected(option: TextEditOption) {
+        mutableModel.update {
+            it.copy(selectedTextEditOption = option)
+        }
+    }
+
+    fun onHideEditTextBar() {
+        mutableModel.update {
+            it.copy(selectedTextBox = null)
+        }
+    }
+
 }
