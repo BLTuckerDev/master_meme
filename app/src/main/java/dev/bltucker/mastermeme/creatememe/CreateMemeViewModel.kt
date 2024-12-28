@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,7 +54,6 @@ class CreateMemeViewModel @Inject constructor(
         mutableModel.update {
             it.copy(
                 textBoxes = it.textBoxes + memeTextBox,
-                selectedTextBox = memeTextBox
             )
         }
     }
@@ -133,11 +131,6 @@ class CreateMemeViewModel @Inject constructor(
                 selectedTextBox = if (it.selectedTextBox == textBox) null else it.selectedTextBox
             )
         }
-    }
-
-    fun onUpdateTextBoxText(textBox: MemeTextBox, newText: String) {
-        val updatedTextBox = textBox.copy(text = newText)
-        updateTextBox(textBox, updatedTextBox)
     }
 
 
@@ -301,9 +294,9 @@ class CreateMemeViewModel @Inject constructor(
         }
     }
 
-    fun onShowEditMemeTextDialog() {
+    fun onShowEditMemeTextDialog(memeTextBox: MemeTextBox?) {
         mutableModel.update {
-            it.copy(showEditMemeTextDialog = true)
+            it.copy(showEditMemeTextDialog = true, selectedTextBox = memeTextBox)
         }
     }
 
@@ -316,6 +309,23 @@ class CreateMemeViewModel @Inject constructor(
     fun onTextEditOptionSelected(option: TextEditOption) {
         mutableModel.update {
             it.copy(selectedTextEditOption = option)
+        }
+    }
+
+    fun onTextBoxUpdated(updatedTextBox: MemeTextBox) {
+        val selectedTextBox = mutableModel.value.selectedTextBox
+        if (selectedTextBox != null) {
+            addAction(MemeAction.UpdateTextBox(selectedTextBox, updatedTextBox))
+
+            mutableModel.update { model ->
+                model.copy(
+                    textBoxes = model.textBoxes.map { textBox ->
+                        if (textBox.id == selectedTextBox.id) updatedTextBox else textBox
+                    },
+                    selectedTextBox = null,
+                    showEditMemeTextDialog = false
+                )
+            }
         }
     }
 }

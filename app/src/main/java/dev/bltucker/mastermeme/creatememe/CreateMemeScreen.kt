@@ -4,15 +4,12 @@ import ExitConfirmationDialog
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -37,7 +34,6 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -48,6 +44,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import coil3.compose.AsyncImage
+import dev.bltucker.mastermeme.common.theme.MemeFont
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeBottomBar
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeTopBar
 import dev.bltucker.mastermeme.creatememe.composables.EditMemeTextDialog
@@ -110,8 +107,11 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
 
             onTextEditOptionSelected = viewModel::onTextEditOptionSelected,
 
-            onUpdateTextBox = viewModel::onUpdateSelectedTextBox,
-            onTemporaryUpdate = viewModel::onTemporaryTextBoxUpdate
+            onUpdateTextBoxProperties = viewModel::onUpdateSelectedTextBox,
+            onTemporaryUpdate = viewModel::onTemporaryTextBoxUpdate,
+            onTextBoxMoved = viewModel::onTextBoxMoved,
+            onDoubleTapTextBox = viewModel::onShowEditMemeTextDialog,
+            onUpdateTextBox = viewModel::onTextBoxUpdated
         )
     }
 }
@@ -125,17 +125,21 @@ fun CreateMemeScreen(
     onBackPress: () -> Unit,
 
     onTextEditOptionSelected: (TextEditOption) -> Unit,
-    onUpdateTextBox: (TextUnit, FontFamily, Color) -> Unit,
+    onUpdateTextBoxProperties: (TextUnit, FontFamily, Color) -> Unit,
+    onUpdateTextBox: (MemeTextBox) -> Unit,
     onHideEditTextBar: () -> Unit,
     onTemporaryUpdate: (TextUnit?, FontFamily?, Color?) -> Unit,
 
 
-    onShowEditMemeTextDialog: () -> Unit,
+    onShowEditMemeTextDialog: (MemeTextBox?) -> Unit,
     onHideEditMemeTextDialog: () -> Unit,
 
     onAddTextBox: (MemeTextBox) -> Unit,
     onTextBoxSelected: (MemeTextBox) -> Unit,
     onTextBoxDeleted: (MemeTextBox) -> Unit,
+    onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
+    onDoubleTapTextBox: (MemeTextBox) -> Unit,
+
     onUndo: () -> Unit,
     onRedo: () -> Unit,
     onToggleSaveOptions: () -> Unit,
@@ -165,7 +169,7 @@ fun CreateMemeScreen(
                     currentFontFamily = model.selectedTextBox.fontFamily,
                     currentColor = model.selectedTextBox!!.color,
                     onOptionSelected = onTextEditOptionSelected,
-                    onConfirmChanges = onUpdateTextBox,
+                    onConfirmChanges = onUpdateTextBoxProperties,
                     onCancel = onHideEditTextBar,
                     onTemporaryUpdate = onTemporaryUpdate
                 )
@@ -174,7 +178,7 @@ fun CreateMemeScreen(
                     modifier = Modifier.navigationBarsPadding(),
                     onAddTextBox = {
                         lastClickOffset = Offset.Zero
-                        onShowEditMemeTextDialog()
+                        onShowEditMemeTextDialog(null)
                     },
                     onUndo = onUndo,
                     onRedo = onRedo,
@@ -214,7 +218,7 @@ fun CreateMemeScreen(
                             .pointerInput(Unit) {
                                 detectTapGestures { offset ->
                                     lastClickOffset = offset
-                                    onShowEditMemeTextDialog()
+                                    onShowEditMemeTextDialog(null)
                                 }
                             },
                         model = template.resourceId,
@@ -225,15 +229,13 @@ fun CreateMemeScreen(
                     model.textBoxes.forEach { textBox ->
                         val displayedBox = model.getDisplayedTextBox(textBox.id) ?: textBox
                         MemeTextOverlay(
-                            text = displayedBox.text,
-                            offset = displayedBox.position,
-                            fontSize = displayedBox.fontSize,
-                            fontFamily = displayedBox.fontFamily,
-                            color = displayedBox.color,
+                            memeTextBox = displayedBox,
+                            onDoubleTap = onDoubleTapTextBox,
                             isSelected = textBox == model.selectedTextBox,
                             onDelete = { onTextBoxDeleted(textBox) },
                             onTap = { onTextBoxSelected(textBox) },
-                            parentBounds = { parentBounds }
+                            parentBounds = { parentBounds },
+                            onTextBoxMoved = onTextBoxMoved,
                         )
                     }
                 }
@@ -273,26 +275,39 @@ fun CreateMemeScreen(
                 onConfirm = { onBackPress() }
             )
         } else if(model.showEditMemeTextDialog){
+            val initialText = model.selectedTextBox?.text ?: ""
             EditMemeTextDialog(
-                text = "",
+                text = initialText,
                 onDismiss = {
                     lastClickOffset = Offset.Zero
                     onHideEditMemeTextDialog()
                 },
                 onSave = { memeText ->
 
-                    val textBox = MemeTextBox(
-                        id = UUID.randomUUID().toString(),
-                        text = memeText,
-                        position = lastClickOffset,
-                        fontSize = 24.sp,
-                        fontFamily = FontFamily.Default,
-                        color = Color.White
-                    )
+                    if(model.selectedTextBox != null){
 
-                    lastClickOffset = Offset.Zero
+                        val updatedTextBox = model.selectedTextBox.copy(
+                            text = memeText
+                        )
+                        onUpdateTextBox(updatedTextBox)
+                        lastClickOffset = Offset.Zero
 
-                    onAddTextBox(textBox)
+
+                    } else {
+                        val textBox = MemeTextBox(
+                            id = UUID.randomUUID().toString(),
+                            text = memeText,
+                            position = lastClickOffset,
+                            fontSize = 48.sp,
+                            fontFamily = MemeFont,
+                            color = Color.White
+                        )
+
+                        lastClickOffset = Offset.Zero
+
+                        onAddTextBox(textBox)
+                    }
+
                 },
             )
         }

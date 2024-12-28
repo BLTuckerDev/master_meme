@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -39,23 +40,22 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
+import dev.bltucker.mastermeme.creatememe.MemeTextBox
 import kotlin.math.roundToInt
 
 @Composable
 fun MemeTextOverlay(
     modifier: Modifier = Modifier,
-    text: String,
-    offset: Offset,
-    fontSize: TextUnit,
-    fontFamily: FontFamily,
-    color: Color,
+    memeTextBox: MemeTextBox,
+    onDoubleTap: (MemeTextBox) -> Unit,
     isSelected: Boolean,
     onDelete: () -> Unit,
     onTap: () -> Unit,
-    parentBounds: () -> Size
+    parentBounds: () -> Size,
+    onTextBoxMoved: (MemeTextBox, Offset) -> Unit,
 ) {
-    var offsetX by remember { mutableFloatStateOf(offset.x) }
-    var offsetY by remember { mutableFloatStateOf(offset.y) }
+    var offsetX by remember { mutableFloatStateOf(memeTextBox.position.x) }
+    var offsetY by remember { mutableFloatStateOf(memeTextBox.position.y) }
     var textSize by remember { mutableStateOf(Size.Zero) }
 
     val bounds = parentBounds()
@@ -67,34 +67,49 @@ fun MemeTextOverlay(
                 textSize = Size(size.width.toFloat(), size.height.toFloat())
             }
             .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
+                detectDragGestures(
+                    onDragEnd = {
+                        onTextBoxMoved(memeTextBox, Offset(offsetX, offsetY))
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
 
-                    // Calculate new position
-                    val newX = (offsetX + dragAmount.x).coerceIn(
-                        0f,
-                        bounds.width - textSize.width
-                    )
-                    val newY = (offsetY + dragAmount.y).coerceIn(
-                        0f,
-                        bounds.height - textSize.height
-                    )
+                        // Calculate new position
+                        val newX = (offsetX + dragAmount.x).coerceIn(
+                            0f,
+                            bounds.width - textSize.width
+                        )
+                        val newY = (offsetY + dragAmount.y).coerceIn(
+                            0f,
+                            bounds.height - textSize.height
+                        )
 
-                    offsetX = newX
-                    offsetY = newY
-                }
+                        offsetX = newX
+                        offsetY = newY
+                    }
+                )
             },
     ) {
         Surface(
-            onClick = onTap,
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            onTap()
+                        },
+                        onDoubleTap = {
+                            onDoubleTap(memeTextBox)
+                        }
+                    )
+                },
             color = Color.Transparent,
         ) {
             Box {
                 Text(
-                    text = text,
-                    color = color,
-                    fontSize = fontSize,
-                    fontFamily = fontFamily,
+                    text = memeTextBox.text,
+                    color = memeTextBox.color,
+                    fontSize = memeTextBox.fontSize,
+                    fontFamily = memeTextBox.fontFamily,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .then(
@@ -138,15 +153,13 @@ private fun MemeTextOverlayPreview_Selected() {
     MasterMemeTheme {
         Surface(modifier = Modifier.padding(10.dp)) {
             MemeTextOverlay(
-                text = "Sample Meme Text",
-                fontSize = 24.sp,
-                fontFamily = FontFamily.Default,
-                color = Color.White,
+                memeTextBox = MemeTextBox("id", "Sample Meme Text", position = Offset(0f, 0f), fontSize = 24.sp, fontFamily = FontFamily.Default, color = Color.White),
                 isSelected = true,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f),
-                parentBounds = { Size(100f, 100f) }
+                parentBounds = { Size(100f, 100f) },
+                onTextBoxMoved = { _, _ -> },
+                onDoubleTap = {}
             )
         }
     }
@@ -158,15 +171,13 @@ private fun MemeTextOverlayPreview_Unselected() {
     MasterMemeTheme {
         Surface {
             MemeTextOverlay(
-                text = "Sample Meme Text",
-                fontSize = 24.sp,
-                fontFamily = FontFamily.Default,
-                color = Color.White,
+                memeTextBox = MemeTextBox("id", "Sample Meme Text", position = Offset(0f, 0f), fontSize = 24.sp, fontFamily = FontFamily.Default, color = Color.White),
                 isSelected = false,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f),
-                parentBounds = { Size(100f, 100f) }
+                parentBounds = { Size(100f, 100f) },
+                onTextBoxMoved = { _, _ -> },
+                onDoubleTap = {}
             )
         }
     }
@@ -178,15 +189,13 @@ private fun MemeTextOverlayPreview_LongText() {
     MasterMemeTheme {
         Surface {
             MemeTextOverlay(
-                text = "This is a longer piece of meme text that might need to wrap",
-                fontSize = 24.sp,
-                fontFamily = FontFamily.Default,
-                color = Color.White,
+                memeTextBox = MemeTextBox("id",  "This is a longer piece of meme text that might need to wrap", position = Offset(0f, 0f), fontSize = 24.sp, fontFamily = FontFamily.Default, color = Color.White),
                 isSelected = true,
                 onDelete = {},
                 onTap = {},
-                offset = Offset(0f, 0f),
-                parentBounds = { Size(100f, 100f) }
+                parentBounds = { Size(100f, 100f) },
+                onTextBoxMoved = { _, _ -> },
+                onDoubleTap = {}
             )
         }
     }
