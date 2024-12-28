@@ -9,11 +9,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
@@ -27,6 +30,12 @@ fun EditMemeTextDialog(
 ) {
     var editedText by remember { mutableStateOf(text) }
 
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     AlertDialog(
         shape = RoundedCornerShape(8.dp),
         onDismissRequest = onDismiss,
@@ -38,9 +47,10 @@ fun EditMemeTextDialog(
         },
         text = {
             TextField(
+                modifier = Modifier.fillMaxWidth()
+                    .focusRequester(focusRequester),
                 value = editedText,
                 onValueChange = { editedText = it },
-                modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
