@@ -140,6 +140,7 @@ fun CreateMemeScreen(
         bottomBar = {
             if(model.showEditTextBar){
                 TextEditBottomBar(
+                    modifier = Modifier.navigationBarsPadding(),
                     currentlySelectedOption = model.selectedTextEditOption,
                     currentFontSize = model.selectedTextBox!!.fontSize,
                     currentFontFamily = model.selectedTextBox.fontFamily,

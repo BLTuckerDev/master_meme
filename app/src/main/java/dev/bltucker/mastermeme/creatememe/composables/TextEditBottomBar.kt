@@ -154,6 +154,9 @@ private fun FontSizeSelector(
     currentSize: TextUnit,
     onSizeChanged: (TextUnit) -> Unit
 ) {
+
+    var sliderValue by remember { mutableStateOf(currentSize.value) }
+
     Surface(
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -165,14 +168,15 @@ private fun FontSizeSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${currentSize.value.toInt()}",
+                text = "${sliderValue.toInt()}",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Slider(
                 modifier = Modifier.weight(1f),
-                value = currentSize.value,
+                value = sliderValue,
                 onValueChange = { newSize ->
+                    sliderValue = newSize
                     onSizeChanged(TextUnit(newSize, currentSize.type))
                 },
                 valueRange = 12f..72f,
@@ -213,6 +217,8 @@ private fun FontSelector(
         MemeFont
     )
 
+    var currentFont by remember { mutableStateOf(selectedFont) }
+
     Surface(
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -228,9 +234,12 @@ private fun FontSelector(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier
                         .clip(MaterialTheme.shapes.small)
-                        .clickable { onFontSelected(font) }
+                        .clickable {
+                            currentFont = font
+                            onFontSelected(font)
+                        }
                         .background(
-                            if (font == selectedFont) MaterialTheme.colorScheme.primaryContainer
+                            if (font == currentFont) MaterialTheme.colorScheme.primaryContainer
                             else Color.Transparent
                         )
                         .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -257,6 +266,8 @@ private fun ColorSelector(
         Color.Black
     )
 
+    var currentColor by remember { mutableStateOf(selectedColor) }
+
     Surface(
         tonalElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -273,14 +284,17 @@ private fun ColorSelector(
                         .clip(CircleShape)
                         .background(color)
                         .border(
-                            width = if (color == selectedColor) 2.dp else 1.dp,
-                            color = if (color == selectedColor)
+                            width = if (color == currentColor) 2.dp else 1.dp,
+                            color = if (color == currentColor)
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.outline,
                             shape = CircleShape
                         )
-                        .clickable { onColorSelected(color) }
+                        .clickable {
+                            currentColor = color
+                            onColorSelected(color)
+                        }
                 )
             }
         }

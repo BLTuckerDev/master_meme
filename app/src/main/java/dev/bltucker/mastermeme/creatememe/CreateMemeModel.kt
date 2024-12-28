@@ -30,7 +30,7 @@ data class MemeTextBox(
     val id: String,
     val text: String,
     val position: Offset,
-    val fontSize: TextUnit = 24.sp,
+    val fontSize: TextUnit = 48.sp,
     val fontFamily: FontFamily = FontFamily.Default,
     val color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.White
 )
