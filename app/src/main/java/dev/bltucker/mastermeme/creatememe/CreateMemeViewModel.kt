@@ -37,15 +37,22 @@ class CreateMemeViewModel @Inject constructor(
         val selectedId = mutableModel.value.selectedTextBox?.id ?: return
         val currentBox = mutableModel.value.textBoxes.find { it.id == selectedId } ?: return
 
+        Log.d("EDIT_DEBUG", "Confirming changes with - textUnit: $textUnit, fontFamily: $fontFamily, color: $color")
         Log.d("EDIT_DEBUG", "Current box before update: $currentBox")
-        Log.d("EDIT_DEBUG", "New properties - size: $textUnit, font: $fontFamily, color: $color")
+        Log.d("EDIT_DEBUG", "Current temporary box: ${mutableModel.value.temporaryTextBox}")
 
 
-        val updatedTextBox = currentBox.copy(
+        val baseBox = mutableModel.value.temporaryTextBox ?: currentBox
+
+        Log.d("EDIT_DEBUG", "Using base box for update: $baseBox")
+
+        val updatedTextBox = baseBox.copy(
             fontSize = textUnit,
             fontFamily = fontFamily,
             color = color
         )
+
+        Log.d("EDIT_DEBUG", "Created updated box: $updatedTextBox")
 
         addAction(MemeAction.UpdateTextBoxProperties(
             textBox = currentBox,
@@ -70,9 +77,8 @@ class CreateMemeViewModel @Inject constructor(
             )
         }
 
-        Log.d("EDIT_DEBUG", "Updated box in state: ${
-            mutableModel.value.textBoxes.find { it.id == selectedId }
-        }")
+        Log.d("EDIT_DEBUG", "Final state - text boxes: ${mutableModel.value.textBoxes}")
+
     }
 
     fun onAddTextBox(memeTextBox: MemeTextBox) {
@@ -99,16 +105,26 @@ class CreateMemeViewModel @Inject constructor(
         val selectedId = mutableModel.value.selectedTextBox?.id ?: return
         val currentBox = mutableModel.value.textBoxes.find { it.id == selectedId } ?: return
 
-        val currentTemp = mutableModel.value.temporaryTextBox ?: currentBox
-        val updatedTextBox = currentTemp.copy(
-            fontSize = fontSize ?: currentTemp.fontSize,
-            fontFamily = fontFamily ?: currentTemp.fontFamily,
-            color = color ?: currentTemp.color
+        Log.d("EDIT_DEBUG", "Temporary update - fontSize: $fontSize, fontFamily: $fontFamily, color: $color")
+        Log.d("EDIT_DEBUG", "Current box before temp update: $currentBox")
+        Log.d("EDIT_DEBUG", "Current temporary box before update: ${mutableModel.value.temporaryTextBox}")
+
+
+        val baseBox = mutableModel.value.temporaryTextBox ?: currentBox
+
+        val updatedTextBox = baseBox.copy(
+            fontSize = fontSize ?: baseBox.fontSize,
+            fontFamily = fontFamily ?: baseBox.fontFamily,
+            color = color ?: baseBox.color
         )
+
+        Log.d("EDIT_DEBUG", "Updated temporary box: $updatedTextBox")
 
         mutableModel.update {
             it.copy(temporaryTextBox = updatedTextBox)
         }
+        Log.d("EDIT_DEBUG", "Model after temp update - temporary box: ${mutableModel.value.temporaryTextBox}")
+
     }
 
     fun onCancelTextBoxChanges() {
@@ -151,24 +167,6 @@ class CreateMemeViewModel @Inject constructor(
             it.copy(
                 textBoxes = it.textBoxes - textBox,
                 selectedTextBox = if (it.selectedTextBox == textBox) null else it.selectedTextBox
-            )
-        }
-    }
-
-
-    private fun updateTextBox(oldTextBox: MemeTextBox, newTextBox: MemeTextBox) {
-        // Create separate actions for each changed property
-        if (oldTextBox.text != newTextBox.text) {
-//            addAction(MemeAction.UpdateTextBoxProperties(
-//                textBoxId = oldTextBox,
-//            ))
-        }
-
-        mutableModel.update { model ->
-            model.copy(
-                textBoxes = model.textBoxes.map { box ->
-                    if (box.id == oldTextBox.id) newTextBox else box
-                }
             )
         }
     }
@@ -347,6 +345,10 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     fun onTextEditOptionSelected(option: TextEditOption) {
+        Log.d("EDIT_DEBUG", "Selected edit option: $option")
+        Log.d("EDIT_DEBUG", "Current selected box: ${mutableModel.value.selectedTextBox}")
+        Log.d("EDIT_DEBUG", "Current temporary box: ${mutableModel.value.temporaryTextBox}")
+
         mutableModel.update {
             it.copy(selectedTextEditOption = option)
         }

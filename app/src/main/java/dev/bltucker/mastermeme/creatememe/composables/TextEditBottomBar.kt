@@ -58,23 +58,30 @@ fun TextEditBottomBar(
     onConfirmChanges: (TextUnit, FontFamily, Color) -> Unit,
     onCancel: () -> Unit,
 ) {
+    var tempFontSize by remember(currentFontSize) { mutableStateOf(currentFontSize) }
+    var tempFontFamily by remember(currentFontFamily) { mutableStateOf(currentFontFamily) }
+    var tempColor by remember(currentColor) { mutableStateOf(currentColor) }
+
     Column(modifier = modifier) {
         when (currentlySelectedOption) {
             TextEditOption.SIZE -> FontSizeSelector(
                 currentSize = currentFontSize,
                 onSizeChanged = { size ->
+                    tempFontSize = size
                     onTemporaryUpdate(size, null, null)
                 }
             )
             TextEditOption.FONT -> FontSelector(
                 selectedFont = currentFontFamily,
                 onFontSelected = { font ->
+                    tempFontFamily = font
                     onTemporaryUpdate(null, font, null)
                 }
             )
             TextEditOption.COLOR -> ColorSelector(
                 selectedColor = currentColor,
                 onColorSelected = { color ->
+                    tempColor = color
                     onTemporaryUpdate(null, null, color)
                 }
             )
@@ -130,7 +137,7 @@ fun TextEditBottomBar(
                 }
 
                 IconButton(onClick = {
-                    onConfirmChanges(currentFontSize, currentFontFamily, currentColor)
+                    onConfirmChanges(tempFontSize, tempFontFamily, tempColor)
                 }) {
                     Icon(
                         imageVector = Icons.Default.Check,
