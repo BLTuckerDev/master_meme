@@ -120,7 +120,7 @@ fun MemeTextOverlay(
                                 Modifier
                             }
                         )
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .padding(4.dp)
                 )
 
                 if (isSelected) {
