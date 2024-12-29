@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,8 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
         val args = backStackEntry.toRoute<CreateMemeTemplateArgs>()
         val viewModel = hiltViewModel<CreateMemeViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
+
+
 
         LifecycleStartEffect(Unit) {
             viewModel.onStart(args.templateId)
@@ -229,15 +232,19 @@ fun CreateMemeScreen(
                     model.textBoxes.forEach { textBox ->
                         val displayedBox = model.getDisplayedTextBox(textBox.id) ?: textBox
                         Log.d("UNDO_ACTION", "Drawing Textbox: ${displayedBox.position}")
-                        MemeTextOverlay(
-                            memeTextBox = displayedBox,
-                            onDoubleTap = onDoubleTapTextBox,
-                            isSelected = textBox == model.selectedTextBox,
-                            onDelete = { onTextBoxDeleted(textBox) },
-                            onTap = { onTextBoxSelected(textBox) },
-                            parentBounds = { parentBounds },
-                            onTextBoxMoved = onTextBoxMoved,
-                        )
+
+                        key(displayedBox){
+                            MemeTextOverlay(
+                                memeTextBox = displayedBox,
+                                onDoubleTap = onDoubleTapTextBox,
+                                isSelected = textBox == model.selectedTextBox,
+                                onDelete = { onTextBoxDeleted(textBox) },
+                                onTap = { onTextBoxSelected(textBox) },
+                                parentBounds = { parentBounds },
+                                onTextBoxMoved = onTextBoxMoved,
+                            )
+                        }
+
                     }
                 }
             }
