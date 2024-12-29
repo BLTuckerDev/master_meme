@@ -45,6 +45,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import coil3.compose.AsyncImage
+import dev.bltucker.mastermeme.common.theme.ImpactFont
 import dev.bltucker.mastermeme.common.theme.MemeFont
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeBottomBar
 import dev.bltucker.mastermeme.creatememe.composables.CreateMemeTopBar
@@ -307,7 +308,7 @@ fun CreateMemeScreen(
                             text = memeText,
                             position = lastClickOffset,
                             fontSize = 48.sp,
-                            fontFamily = MemeFont,
+                            fontFamily = ImpactFont,
                             color = Color.White
                         )
 

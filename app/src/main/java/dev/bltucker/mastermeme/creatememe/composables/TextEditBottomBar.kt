@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.bltucker.mastermeme.R
+import dev.bltucker.mastermeme.common.theme.ImpactFont
+import dev.bltucker.mastermeme.common.theme.ManropeFont
 import dev.bltucker.mastermeme.common.theme.MasterMemeTheme
 import dev.bltucker.mastermeme.common.theme.MemeFont
 import dev.bltucker.mastermeme.creatememe.TextEditOption
@@ -205,21 +207,23 @@ private fun FontSizeSelector(
         }
     }
 }
+
+
 @Composable
 private fun FontSelector(
     selectedFont: FontFamily,
     onFontSelected: (FontFamily) -> Unit
 ) {
-    val fonts = listOf(
-        FontFamily.Default,
-        FontFamily.Serif,
-        FontFamily.SansSerif,
-        FontFamily.Monospace,
-        FontFamily.Cursive,
-        MemeFont
+    val fontOptions = listOf(
+        FontOption(MemeFont, "Anton"),
+        FontOption(ImpactFont, "Impact"),
+        FontOption(ManropeFont, "Manrope"),
+        FontOption(FontFamily.Default, "Default"),
+        FontOption(FontFamily.Serif, "Serif"),
+        FontOption(FontFamily.SansSerif, "Sans Serif"),
+        FontOption(FontFamily.Monospace, "Monospace"),
+        FontOption(FontFamily.Cursive, "Cursive")
     )
-
-    var currentFont by remember { mutableStateOf(selectedFont) }
 
     Surface(
         tonalElevation = 1.dp,
@@ -227,30 +231,58 @@ private fun FontSelector(
     ) {
         LazyRow(
             modifier = Modifier.padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            items(fonts) { font ->
-                Text(
-                    text = "Aa",
-                    fontFamily = font,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.small)
-                        .clickable {
-                            currentFont = font
-                            onFontSelected(font)
-                        }
-                        .background(
-                            if (font == currentFont) MaterialTheme.colorScheme.primaryContainer
-                            else Color.Transparent
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+            items(fontOptions) { fontOption ->
+                FontOptionItem(
+                    font = fontOption.font,
+                    name = fontOption.name,
+                    isSelected = fontOption.font == selectedFont,
+                    onSelected = { onFontSelected(fontOption.font) }
                 )
             }
         }
     }
 }
 
+@Composable
+private fun FontOptionItem(
+    font: FontFamily,
+    name: String,
+    isSelected: Boolean,
+    onSelected: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(onClick = onSelected)
+            .background(
+                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                else Color.Transparent,
+                shape = MaterialTheme.shapes.medium
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = "Good",
+            fontFamily = font,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+private data class FontOption(
+    val font: FontFamily,
+    val name: String
+)
 
 @Composable
 private fun ColorSelector(
