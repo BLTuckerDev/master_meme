@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bltucker.mastermeme.common.MemeRepository
+import dev.bltucker.mastermeme.common.MemeShareController
 import dev.bltucker.mastermeme.common.templates.MemeTemplatesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class CreateMemeViewModel @Inject constructor(
     private val memeRepository: MemeRepository,
     private val memeTemplateRepository: MemeTemplatesRepository,
+    private val memeShareController: MemeShareController,
 ) : ViewModel() {
 
     private val mutableModel = MutableStateFlow(CreateMemeModel())
@@ -380,6 +382,19 @@ class CreateMemeViewModel @Inject constructor(
                 selectedTextBox = null,
                 showEditMemeTextDialog = false
             )
+        }
+    }
+
+    fun onShareMeme(bitmap: Bitmap) {
+        viewModelScope.launch {
+            mutableModel.value.memeTemplate?.let { template ->
+                try{
+                    val savedMeme = memeRepository.saveMeme(template.name, bitmap)
+                    memeShareController.shareMemes(listOf(savedMeme))
+                } catch (ex: Exception){
+                    Log.d("SAVE_MEME", "Error Saving Meme: $ex")
+                }
+            }
         }
     }
 }

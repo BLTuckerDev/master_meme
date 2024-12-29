@@ -115,7 +115,8 @@ fun NavGraphBuilder.createMemeScreen(onNavigateBack: () -> Unit) {
             onTemporaryUpdate = viewModel::onTemporaryTextBoxPropertiesUpdate,
             onTextBoxMoved = viewModel::onTextBoxMoved,
             onDoubleTapTextBox = viewModel::onShowEditMemeTextDialog,
-            onUpdateTextBox = viewModel::onTextBoxUpdated
+            onUpdateTextBox = viewModel::onTextBoxUpdated,
+            onShareMeme = viewModel::onShareMeme
         )
     }
 }
@@ -149,6 +150,7 @@ fun CreateMemeScreen(
     onToggleSaveOptions: () -> Unit,
     onToggleExitDialog: () -> Unit,
     onSaveMeme: (Bitmap) -> Unit,
+    onShareMeme: (Bitmap) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -272,7 +274,18 @@ fun CreateMemeScreen(
                             }
                         }
                     },
-                    onShare = { /* TODO: Implement share */ }
+                    onShare = {
+                        coroutineScope.launch {
+                            try {
+                                val bitmapAsync = captureController.captureAsync()
+                                val bitmap = bitmapAsync.await()
+                                val memeImage = bitmap.asAndroidBitmap()
+                                onShareMeme(memeImage)
+                            } catch (error: Exception) {
+                                Log.d("DEBUG", "error saving: $error")
+                            }
+                        }
+                    }
                 )
             }
 
