@@ -34,18 +34,45 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     fun onUpdateSelectedTextBoxProperties(textUnit: TextUnit, fontFamily: FontFamily, color: Color) {
-        val selectedTextBox = mutableModel.value.selectedTextBox ?: return
-        val updatedTextBox = selectedTextBox.copy(
+        val selectedId = mutableModel.value.selectedTextBox?.id ?: return
+        val currentBox = mutableModel.value.textBoxes.find { it.id == selectedId } ?: return
+
+        Log.d("EDIT_DEBUG", "Current box before update: $currentBox")
+        Log.d("EDIT_DEBUG", "New properties - size: $textUnit, font: $fontFamily, color: $color")
+
+
+        val updatedTextBox = currentBox.copy(
             fontSize = textUnit,
             fontFamily = fontFamily,
             color = color
         )
 
-        updateTextBox(selectedTextBox, updatedTextBox)
+        addAction(MemeAction.UpdateTextBoxProperties(
+            textBox = currentBox,
+            oldText = currentBox.text,
+            newText = updatedTextBox.text,
+            oldFontSize = currentBox.fontSize,
+            oldFontFamily = currentBox.fontFamily,
+            oldColor = currentBox.color,
+            newFontSize = textUnit,
+            newFontFamily = fontFamily,
+            newColor = color
+        ))
 
         mutableModel.update {
-            it.copy(selectedTextBox = null)
+            it.copy(
+                textBoxes = it.textBoxes.map { box ->
+                    if (box.id == selectedId) updatedTextBox else box
+                },
+                selectedTextBox = null,
+                temporaryTextBox = null,
+                selectedTextEditOption = TextEditOption.NONE
+            )
         }
+
+        Log.d("EDIT_DEBUG", "Updated box in state: ${
+            mutableModel.value.textBoxes.find { it.id == selectedId }
+        }")
     }
 
     fun onAddTextBox(memeTextBox: MemeTextBox) {
@@ -59,18 +86,20 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     fun onTextBoxSelected(textBox: MemeTextBox) {
+        val currentBox = mutableModel.value.textBoxes.find { it.id == textBox.id } ?: return
         mutableModel.update {
             it.copy(
-                selectedTextBox = textBox,
+                selectedTextBox = currentBox,
                 temporaryTextBox = null
             )
         }
     }
 
     fun onTemporaryTextBoxPropertiesUpdate(fontSize: TextUnit? = null, fontFamily: FontFamily? = null, color: Color? = null) {
-        val currentTextBox = mutableModel.value.selectedTextBox ?: return
-        val currentTemp = mutableModel.value.temporaryTextBox ?: currentTextBox
+        val selectedId = mutableModel.value.selectedTextBox?.id ?: return
+        val currentBox = mutableModel.value.textBoxes.find { it.id == selectedId } ?: return
 
+        val currentTemp = mutableModel.value.temporaryTextBox ?: currentBox
         val updatedTextBox = currentTemp.copy(
             fontSize = fontSize ?: currentTemp.fontSize,
             fontFamily = fontFamily ?: currentTemp.fontFamily,
@@ -94,17 +123,25 @@ class CreateMemeViewModel @Inject constructor(
 
     fun onTextBoxMoved(textBox: MemeTextBox, newPosition: Offset) {
         val oldPosition = textBox.position
+        Log.d("POSITION_DEBUG", "Moving - Old position: $oldPosition")
+        Log.d("POSITION_DEBUG", "Moving - New position: $newPosition")
         val updatedTextBox = textBox.copy(position = newPosition)
+        Log.d("POSITION_DEBUG", "Moving - Updated box position: ${updatedTextBox.position}")
 
         addAction(MemeAction.MoveTextBox(textBox, oldPosition, newPosition))
 
+        val currentTextBoxes = mutableModel.value.textBoxes
+        val updatedTextBoxes = currentTextBoxes.map { box ->
+            if (box.id == textBox.id) updatedTextBox else box
+        }
         mutableModel.update {
             it.copy(
-                textBoxes = it.textBoxes.map { box ->
-                    if (box.id == textBox.id) updatedTextBox else box
-                }
+                textBoxes = updatedTextBoxes
             )
         }
+        Log.d("POSITION_DEBUG", "Moving - Final state position: ${
+            mutableModel.value.textBoxes.find { it.id == textBox.id }?.position
+        }")
     }
 
     fun onTextBoxDeleted(textBox: MemeTextBox) {
@@ -120,14 +157,18 @@ class CreateMemeViewModel @Inject constructor(
 
 
     private fun updateTextBox(oldTextBox: MemeTextBox, newTextBox: MemeTextBox) {
-        addAction(MemeAction.UpdateTextBox(oldTextBox, newTextBox))
+        // Create separate actions for each changed property
+        if (oldTextBox.text != newTextBox.text) {
+//            addAction(MemeAction.UpdateTextBoxProperties(
+//                textBoxId = oldTextBox,
+//            ))
+        }
 
-        mutableModel.update {
-            it.copy(
-                textBoxes = it.textBoxes.map { box ->
+        mutableModel.update { model ->
+            model.copy(
+                textBoxes = model.textBoxes.map { box ->
                     if (box.id == oldTextBox.id) newTextBox else box
-                },
-                selectedTextBox = if (it.selectedTextBox?.id == oldTextBox.id) newTextBox else it.selectedTextBox
+                }
             )
         }
     }
@@ -135,27 +176,14 @@ class CreateMemeViewModel @Inject constructor(
     fun onUndo() {
         val model = mutableModel.value
         if (model.currentActionIndex < 0) return
+        val actionToUndo = model.lastActions[model.currentActionIndex]
 
-        when (val actionToUndo = model.lastActions[model.currentActionIndex]) {
+        when (actionToUndo) {
             is MemeAction.AddTextBox -> {
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes - actionToUndo.textBox,
-                        currentActionIndex = it.currentActionIndex - 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
-                    )
-                }
-            }
-            is MemeAction.UpdateTextBox -> {
-                mutableModel.update {
-                    it.copy(
-                        textBoxes = it.textBoxes.map { box ->
-                            if (box.id == actionToUndo.newTextBox.id) actionToUndo.oldTextBox else box
-                        },
-                        currentActionIndex = it.currentActionIndex - 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
+                        currentActionIndex = it.currentActionIndex - 1
                     )
                 }
             }
@@ -163,9 +191,25 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes + actionToUndo.textBox,
-                        currentActionIndex = it.currentActionIndex - 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
+                        currentActionIndex = it.currentActionIndex - 1
+                    )
+                }
+            }
+
+            is MemeAction.UpdateTextBoxProperties -> {
+                mutableModel.update {
+                    it.copy(
+                        textBoxes = it.textBoxes.map { box ->
+                            if (box.id == actionToUndo.textBox.id) {
+                                actionToUndo.textBox.copy(
+                                    text = actionToUndo.oldText,
+                                    fontSize = actionToUndo.oldFontSize,
+                                    fontFamily = actionToUndo.oldFontFamily,
+                                    color = actionToUndo.oldColor
+                                )
+                            } else box
+                        },
+                        currentActionIndex = it.currentActionIndex - 1
                     )
                 }
             }
@@ -175,8 +219,7 @@ class CreateMemeViewModel @Inject constructor(
                     it.copy(
                         textBoxes = it.textBoxes.map { box ->
                             if (box.id == actionToUndo.textBox.id) {
-                                Log.d("UNDO_ACTION", "BoxPosition: ${box.position} , old position: ${actionToUndo.oldPosition}")
-                                box.copy(position = actionToUndo.oldPosition)
+                                actionToUndo.textBox.copy(position = actionToUndo.oldPosition)
                             } else box
                         },
                         currentActionIndex = it.currentActionIndex - 1
@@ -189,27 +232,14 @@ class CreateMemeViewModel @Inject constructor(
     fun onRedo() {
         val model = mutableModel.value
         if (model.currentActionIndex >= model.lastActions.size - 1) return
+        val actionToRedo = model.lastActions[model.currentActionIndex + 1]
 
-        when (val actionToRedo = model.lastActions[model.currentActionIndex + 1]) {
+        when (actionToRedo) {
             is MemeAction.AddTextBox -> {
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes + actionToRedo.textBox,
-                        currentActionIndex = it.currentActionIndex + 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
-                    )
-                }
-            }
-            is MemeAction.UpdateTextBox -> {
-                mutableModel.update {
-                    it.copy(
-                        textBoxes = it.textBoxes.map { box ->
-                            if (box.id == actionToRedo.oldTextBox.id) actionToRedo.newTextBox else box
-                        },
-                        currentActionIndex = it.currentActionIndex + 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
+                        currentActionIndex = it.currentActionIndex + 1
                     )
                 }
             }
@@ -217,18 +247,35 @@ class CreateMemeViewModel @Inject constructor(
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes - actionToRedo.textBox,
-                        currentActionIndex = it.currentActionIndex + 1,
-                        selectedTextBox = null,
-                        temporaryTextBox = null
+                        currentActionIndex = it.currentActionIndex + 1
                     )
                 }
             }
+
+            is MemeAction.UpdateTextBoxProperties -> {
+                mutableModel.update {
+                    it.copy(
+                        textBoxes = it.textBoxes.map { box ->
+                            if (box.id == actionToRedo.textBox.id) {
+                                actionToRedo.textBox.copy(
+                                    text = actionToRedo.newText,  // Use the new text value here
+                                    fontSize = actionToRedo.newFontSize,
+                                    fontFamily = actionToRedo.newFontFamily,
+                                    color = actionToRedo.newColor
+                                )
+                            } else box
+                        },
+                        currentActionIndex = it.currentActionIndex + 1
+                    )
+                }
+            }
+
             is MemeAction.MoveTextBox -> {
                 mutableModel.update {
                     it.copy(
                         textBoxes = it.textBoxes.map { box ->
                             if (box.id == actionToRedo.textBox.id) {
-                                box.copy(position = actionToRedo.newPosition)
+                                actionToRedo.textBox.copy(position = actionToRedo.newPosition)
                             } else box
                         },
                         currentActionIndex = it.currentActionIndex + 1
@@ -239,6 +286,8 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     private fun addAction(action: MemeAction) {
+        Log.d("ACTION_DEBUG", "Adding action: $action")
+        Log.d("ACTION_DEBUG", "Current actions: ${mutableModel.value.lastActions}")
         mutableModel.update {
             val newActions = it.lastActions
                 .take(it.currentActionIndex + 1)
@@ -246,11 +295,16 @@ class CreateMemeViewModel @Inject constructor(
                 .apply { add(action) }
                 .takeLast(5)
 
+            Log.d("ACTION_DEBUG", "New actions list: $newActions")
+
             it.copy(
                 lastActions = newActions,
                 currentActionIndex = newActions.size - 1
             )
         }
+
+        Log.d("ACTION_DEBUG", "After update - actions: ${mutableModel.value.lastActions}")
+        Log.d("ACTION_DEBUG", "After update - current index: ${mutableModel.value.currentActionIndex}")
     }
 
     fun onToggleSaveOptions() {
@@ -299,19 +353,31 @@ class CreateMemeViewModel @Inject constructor(
     }
 
     fun onTextBoxUpdated(updatedTextBox: MemeTextBox) {
-        val selectedTextBox = mutableModel.value.selectedTextBox
-        if (selectedTextBox != null) {
-            addAction(MemeAction.UpdateTextBox(selectedTextBox, updatedTextBox))
+        val selectedId = mutableModel.value.selectedTextBox?.id ?: return
+        val currentBox = mutableModel.value.textBoxes.find { it.id == selectedId } ?: return
 
-            mutableModel.update { model ->
-                model.copy(
-                    textBoxes = model.textBoxes.map { textBox ->
-                        if (textBox.id == selectedTextBox.id) updatedTextBox else textBox
-                    },
-                    selectedTextBox = null,
-                    showEditMemeTextDialog = false
-                )
-            }
+        addAction(MemeAction.UpdateTextBoxProperties(
+            textBox = currentBox,
+            oldText = currentBox.text,
+            newText = updatedTextBox.text,
+            oldFontSize = currentBox.fontSize,
+            oldFontFamily = currentBox.fontFamily,
+            oldColor = currentBox.color,
+            newFontSize = currentBox.fontSize,
+            newFontFamily = currentBox.fontFamily,
+            newColor = currentBox.color
+        ))
+
+        mutableModel.update { model ->
+            model.copy(
+                textBoxes = model.textBoxes.map { textBox ->
+                    if (textBox.id == selectedId) {
+                        currentBox.copy(text = updatedTextBox.text)
+                    } else textBox
+                },
+                selectedTextBox = null,
+                showEditMemeTextDialog = false
+            )
         }
     }
 }

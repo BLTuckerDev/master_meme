@@ -1,6 +1,7 @@
 package dev.bltucker.mastermeme.creatememe
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.SystemFontFamily
 import androidx.compose.ui.unit.TextUnit
@@ -41,14 +42,24 @@ data class MemeTextBox(
     val position: Offset,
     val fontSize: TextUnit = 48.sp,
     val fontFamily: FontFamily = FontFamily.Default,
-    val color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.White
+    val color: Color = Color.White
 )
 
 sealed class MemeAction {
     data class AddTextBox(val textBox: MemeTextBox) : MemeAction()
-    data class UpdateTextBox(val oldTextBox: MemeTextBox, val newTextBox: MemeTextBox) : MemeAction()
     data class DeleteTextBox(val textBox: MemeTextBox) : MemeAction()
     data class MoveTextBox(val textBox: MemeTextBox, val oldPosition: Offset, val newPosition: Offset) : MemeAction()
+    data class UpdateTextBoxProperties(
+        val textBox: MemeTextBox,
+        val oldText: String,
+        val newText: String,
+        val oldFontSize: TextUnit,
+        val oldFontFamily: FontFamily,
+        val oldColor: Color,
+        val newFontSize: TextUnit,
+        val newFontFamily: FontFamily,
+        val newColor: Color
+    ) : MemeAction()
 }
 
 enum class TextEditOption {
