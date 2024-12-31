@@ -74,7 +74,7 @@ fun TextEditBottomBar(
                 }
             )
             TextEditOption.FONT -> FontSelector(
-                selectedFont = currentFontFamily,
+                currentlySelectedFont = currentFontFamily,
                 onFontSelected = { font ->
                     tempFontFamily = font
                     onTemporaryUpdate(null, font, null)
@@ -211,9 +211,12 @@ private fun FontSizeSelector(
 
 @Composable
 private fun FontSelector(
-    selectedFont: FontFamily,
+    currentlySelectedFont: FontFamily,
     onFontSelected: (FontFamily) -> Unit
 ) {
+
+    var selectedFont by remember { mutableStateOf(currentlySelectedFont) }
+
     val fontOptions = listOf(
         FontOption(MemeFont, "Anton"),
         FontOption(ImpactFont, "Impact"),
@@ -239,7 +242,10 @@ private fun FontSelector(
                     font = fontOption.font,
                     name = fontOption.name,
                     isSelected = fontOption.font == selectedFont,
-                    onSelected = { onFontSelected(fontOption.font) }
+                    onSelected = {
+                        selectedFont = fontOption.font
+                        onFontSelected(fontOption.font)
+                    }
                 )
             }
         }
